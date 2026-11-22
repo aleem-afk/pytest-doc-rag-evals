@@ -13,11 +13,11 @@ text and whether the answers are correct and grounded.
 
 ```mermaid
 flowchart LR
-    Q[Question] --> E[Embed question<br/>all-MiniLM-L6-v2]
-    E --> S[Search Chroma<br/>top 5 chunks]
-    S --> P[Prompt: question +<br/>numbered excerpts]
-    P --> L[LLM<br/>gpt-5.4-mini]
-    L --> A[Answer + sources<br/>or &quot;I don't know&quot;]
+    Q["Question"] --> E["Embed question<br/>all-MiniLM-L6-v2"]
+    E --> S["Search Chroma<br/>top 5 chunks"]
+    S --> P["Prompt: question +<br/>numbered excerpts"]
+    P --> L["LLM<br/>gpt-5.4-mini"]
+    L --> A["Answer + sources<br/>or I don't know"]
 ```
 
 1. **Ingest:** download 6 pytest doc pages, keep the main text, split it into ~800-character chunks (134 total).
