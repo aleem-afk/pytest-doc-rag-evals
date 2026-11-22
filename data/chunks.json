@@ -1,0 +1,672 @@
+[
+  {
+    "id": "getting-started.html-0",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "Get Started\nInstall pytest\nInstall pytest into a virtual environment, not into the Python installation\nof your operating system (see Install package in a virtual environment).\nCreate a virtual environment and install pytest into it,\nusing the tool of your choice:\nvenv + pip\nvenv and pip ship with Python.\nSome Linux distributions package them separately\n(for example python3-venv on Debian and Ubuntu).\npython3 -m venv .venv\nsource .venv/bin/activate   # on Windows: .venv\\Scripts\\activate\npip install -U pytest\nuv\nuv creates and manages the virtual\nenvironment of your project for you.\nIn a directory with a pyproject.toml (uv init creates one):\nuv add --dev pytest\nPrefix the pytest commands on this page with uv run,\nfor example uv run pytest, to run them inside the project environment.\nvirtualenv"
+  },
+  {
+    "id": "getting-started.html-1",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "virtualenv\nvirtualenv is a faster, more configurable\nalternative to venv:\nvirtualenv .venv\nsource .venv/bin/activate   # on Windows: .venv\\Scripts\\activate\npip install -U pytest\nCheck that you installed the correct version:\n$ pytest --version\npytest 9.2.0\nSee Install package in a virtual environment for how to install the project you are\ntesting into the same environment.\nCreate your first test\nCreate a new file called test_sample.py, containing a function, and a test:\n# content of test_sample.py\ndef func(x):\n    return x + 1\ndef test_answer():\n    assert func(3) == 5\nRun the test:\n$ pytest\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 1 item\ntest_sample.py F                                                     [100%]"
+  },
+  {
+    "id": "getting-started.html-2",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "test_sample.py F                                                     [100%]\n================================= FAILURES =================================\n_______________________________ test_answer ________________________________\n    def test_answer():\n>       assert func(3) == 5\nE       assert 4 == 5\nE        +  where 4 = func(3)\ntest_sample.py:6: AssertionError\n========================= short test summary info ==========================\nFAILED test_sample.py::test_answer - assert 4 == 5\n============================ 1 failed in 0.12s =============================\nThe [100%] refers to the overall progress of running all test cases. After it finishes, pytest then shows a failure report because func(3) does not return 5.\nNote\nYou can use the assert statement to verify test expectations. pytest’s Advanced assertion introspection will intelligently report intermediate values of the assert expression so you can avoid the many names of JUnit legacy methods."
+  },
+  {
+    "id": "getting-started.html-3",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "You can use the assert statement to verify test expectations. pytest’s Advanced assertion introspection will intelligently report intermediate values of the assert expression so you can avoid the many names of JUnit legacy methods.\nRun multiple tests\npytest will run all files of the form test_*.py or *_test.py in the current directory and its subdirectories. More generally, it follows standard test discovery rules.\nAssert that a certain exception is raised\nUse the raises helper to assert that some code raises an exception:\n# content of test_sysexit.py\nimport pytest\ndef f():\n    raise SystemExit(1)\ndef test_mytest():\n    with pytest.raises(SystemExit):\n        f()\nExecute the test function with “quiet” reporting mode:\n$ pytest -q test_sysexit.py\n.                                                                    [100%]"
+  },
+  {
+    "id": "getting-started.html-4",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": ".                                                                    [100%]\n1 passed in 0.12s\nNote\nThe -q/--quiet flag keeps the output brief in this and following examples.\nSee Assertions about expected exceptions for specifying more details about the expected exception.\nGroup multiple tests in a class\nOnce you develop multiple tests, you may want to group them into a class. pytest makes it easy to create a class containing more than one test:\n# content of test_class.py\nclass TestClass:\n    def test_one(self):\n        x = \"this\"\n        assert \"h\" in x\n    def test_two(self):\n        x = \"hello\"\n        assert hasattr(x, \"check\")\npytest discovers all tests following its Conventions for Python test discovery, so it finds both test_ prefixed functions. There is no need to subclass anything, but make sure to prefix your class with Test otherwise the class will be skipped. We can simply run the module by passing its filename:"
+  },
+  {
+    "id": "getting-started.html-5",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "pytest discovers all tests following its Conventions for Python test discovery, so it finds both test_ prefixed functions. There is no need to subclass anything, but make sure to prefix your class with Test otherwise the class will be skipped. We can simply run the module by passing its filename:\n$ pytest -q test_class.py\n.F                                                                   [100%]\n================================= FAILURES =================================\n____________________________ TestClass.test_two ____________________________\nself = <test_class.TestClass object at 0xdeadbeef0001>\n    def test_two(self):\n        x = \"hello\"\n>       assert hasattr(x, \"check\")\nE       AssertionError: assert False\nE        +  where False = hasattr('hello', 'check')\ntest_class.py:8: AssertionError"
+  },
+  {
+    "id": "getting-started.html-6",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "test_class.py:8: AssertionError\n========================= short test summary info ==========================\nFAILED test_class.py::TestClass::test_two - AssertionError: assert False\n1 failed, 1 passed in 0.12s\nThe first test passed and the second failed. You can easily see the intermediate values in the assertion to help you understand the reason for the failure.\nGrouping tests in classes can be beneficial for the following reasons:\nTest organization\nSharing fixtures for tests only in that particular class\nApplying marks at the class level and having them implicitly apply to all tests\nSomething to be aware of when grouping tests inside classes is that each test has a unique instance of the class.\nHaving each test share the same class instance would be very detrimental to test isolation and would promote poor test practices."
+  },
+  {
+    "id": "getting-started.html-7",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "Having each test share the same class instance would be very detrimental to test isolation and would promote poor test practices.\nThis is outlined below:\n# content of test_class_demo.py\nclass TestClassDemoInstance:\n    value = 0\n    def test_one(self):\n        self.value = 1\n        assert self.value == 1\n    def test_two(self):\n        assert self.value == 1\n$ pytest -k TestClassDemoInstance -q\n.F                                                                   [100%]\n================================= FAILURES =================================\n______________________ TestClassDemoInstance.test_two ______________________\nself = <test_class_demo.TestClassDemoInstance object at 0xdeadbeef0002>\n    def test_two(self):\n>       assert self.value == 1\nE       assert 0 == 1\nE        +  where 0 = <test_class_demo.TestClassDemoInstance object at 0xdeadbeef0002>.value"
+  },
+  {
+    "id": "getting-started.html-8",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "E        +  where 0 = <test_class_demo.TestClassDemoInstance object at 0xdeadbeef0002>.value\ntest_class_demo.py:9: AssertionError\n========================= short test summary info ==========================\nFAILED test_class_demo.py::TestClassDemoInstance::test_two - assert 0 == 1\n1 failed, 1 passed in 0.12s\nNote that attributes added at class level are class attributes, so they will be shared between tests.\nCompare floating-point values with pytest.approx\npytest also provides a number of utilities to make writing tests easier.\nFor example, you can use pytest.approx() to compare floating-point\nvalues that may have small rounding errors:\n# content of test_approx.py\nimport pytest\ndef test_sum():\n    assert (0.1 + 0.2) == pytest.approx(0.3)\nThis avoids the need for manual tolerance checks or using"
+  },
+  {
+    "id": "getting-started.html-9",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "This avoids the need for manual tolerance checks or using\nmath.isclose and works with scalars, lists, and NumPy arrays.\nRequest a unique temporary directory for functional tests\npytest provides Builtin fixtures/function arguments to request arbitrary resources, like a unique temporary directory:\n# content of test_tmp_path.py\ndef test_needsfiles(tmp_path):\n    print(tmp_path)\n    assert 0\nList the name tmp_path in the test function signature and pytest will lookup and call a fixture factory to create the resource before performing the test function call. Before the test runs, pytest creates a unique-per-test-invocation temporary directory:\n$ pytest -q test_tmp_path.py\nF                                                                    [100%]\n================================= FAILURES ================================="
+  },
+  {
+    "id": "getting-started.html-10",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "================================= FAILURES =================================\n_____________________________ test_needsfiles ______________________________\ntmp_path = PosixPath('PYTEST_TMPDIR/test_needsfiles0')\n    def test_needsfiles(tmp_path):\n        print(tmp_path)\n>       assert 0\nE       assert 0\ntest_tmp_path.py:3: AssertionError\n--------------------------- Captured stdout call ---------------------------\nPYTEST_TMPDIR/test_needsfiles0\n========================= short test summary info ==========================\nFAILED test_tmp_path.py::test_needsfiles - assert 0\n1 failed in 0.12s\nMore info on temporary directory handling is available at Temporary directories and files.\nFind out what kind of builtin pytest fixtures exist with the command:\npytest --fixtures   # shows builtin and custom fixtures"
+  },
+  {
+    "id": "getting-started.html-11",
+    "source": "https://docs.pytest.org/en/stable/getting-started.html",
+    "text": "pytest --fixtures   # shows builtin and custom fixtures\nNote that this command omits fixtures with leading _ unless the -v option is added.\nContinue reading\nCheck out additional pytest resources to help you customize tests for your unique workflow:\n“How to invoke pytest” for command line invocation examples\n“How to use pytest with an existing test suite” for working with preexisting tests\n“How to mark test functions with attributes” for information on the pytest.mark mechanism\n“Fixtures reference” for providing a functional baseline to your tests\n“Writing plugins” for managing and writing plugins\n“Good Integration Practices” for virtualenv and test layouts"
+  },
+  {
+    "id": "fixtures.html-0",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "How to use fixtures\nSee also\nAbout fixtures\nSee also\nFixtures reference\n“Requesting” fixtures\nAt a basic level, test functions request fixtures they require by declaring\nthem as arguments.\nWhen pytest goes to run a test, it looks at the parameters in that test\nfunction’s signature, and then searches for fixtures that have the same names as\nthose parameters. Once pytest finds them, it runs those fixtures, captures what\nthey returned (if anything), and passes those objects into the test function as\narguments.\nQuick example\nimport pytest\nclass Fruit:\n    def __init__(self, name):\n        self.name = name\n        self.cubed = False\n    def cube(self):\n        self.cubed = True\nclass FruitSalad:\n    def __init__(self, *fruit_bowl):\n        self.fruit = fruit_bowl\n        self._cube_fruit()\n    def _cube_fruit(self):"
+  },
+  {
+    "id": "fixtures.html-1",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    def _cube_fruit(self):\n        for fruit in self.fruit:\n            fruit.cube()\n# Arrange\n@pytest.fixture\ndef fruit_bowl():\n    return [Fruit(\"apple\"), Fruit(\"banana\")]\ndef test_fruit_salad(fruit_bowl):\n    # Act\n    fruit_salad = FruitSalad(*fruit_bowl)\n    # Assert\n    assert all(fruit.cubed for fruit in fruit_salad.fruit)\nIn this example, test_fruit_salad “requests” fruit_bowl (i.e.\ndef test_fruit_salad(fruit_bowl):), and when pytest sees this, it will\nexecute the fruit_bowl fixture function and pass the object it returns into\ntest_fruit_salad as the fruit_bowl argument.\nHere’s roughly\nwhat’s happening if we were to do it by hand:\ndef fruit_bowl():\n    return [Fruit(\"apple\"), Fruit(\"banana\")]\ndef test_fruit_salad(fruit_bowl):\n    # Act\n    fruit_salad = FruitSalad(*fruit_bowl)\n    # Assert"
+  },
+  {
+    "id": "fixtures.html-2",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    # Assert\n    assert all(fruit.cubed for fruit in fruit_salad.fruit)\n# Arrange\nbowl = fruit_bowl()\ntest_fruit_salad(fruit_bowl=bowl)\nFixtures can request other fixtures\nOne of pytest’s greatest strengths is its extremely flexible fixture system. It\nallows us to boil down complex requirements for tests into more simple and\norganized functions, where we only need to have each one describe the things\nthey are dependent on. We’ll get more into this further down, but for now,\nhere’s a quick example to demonstrate how fixtures can use other fixtures:\n# contents of test_append.py\nimport pytest\n# Arrange\n@pytest.fixture\ndef first_entry():\n    return \"a\"\n# Arrange\n@pytest.fixture\ndef order(first_entry):\n    return [first_entry]\ndef test_string(order):\n    # Act\n    order.append(\"b\")\n    # Assert"
+  },
+  {
+    "id": "fixtures.html-3",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    # Assert\n    assert order == [\"a\", \"b\"]\nNotice that this is the same example from above, but very little changed. The\nfixtures in pytest request fixtures just like tests. All the same\nrequesting rules apply to fixtures that do for tests. Here’s how this\nexample would work if we did it by hand:\ndef first_entry():\n    return \"a\"\ndef order(first_entry):\n    return [first_entry]\ndef test_string(order):\n    # Act\n    order.append(\"b\")\n    # Assert\n    assert order == [\"a\", \"b\"]\nentry = first_entry()\nthe_list = order(first_entry=entry)\ntest_string(order=the_list)\nFixtures are reusable\nOne of the things that makes pytest’s fixture system so powerful, is that it\ngives us the ability to define a generic setup step that can be reused over and\nover, just like a normal function would be used. Two different tests can request"
+  },
+  {
+    "id": "fixtures.html-4",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "over, just like a normal function would be used. Two different tests can request\nthe same fixture and have pytest give each test their own result from that\nfixture.\nThis is extremely useful for making sure tests aren’t affected by each other. We\ncan use this system to make sure each test gets its own fresh batch of data and\nis starting from a clean state so it can provide consistent, repeatable results.\nHere’s an example of how this can come in handy:\n# contents of test_append.py\nimport pytest\n# Arrange\n@pytest.fixture\ndef first_entry():\n    return \"a\"\n# Arrange\n@pytest.fixture\ndef order(first_entry):\n    return [first_entry]\ndef test_string(order):\n    # Act\n    order.append(\"b\")\n    # Assert\n    assert order == [\"a\", \"b\"]\ndef test_int(order):\n    # Act\n    order.append(2)\n    # Assert\n    assert order == [\"a\", 2]"
+  },
+  {
+    "id": "fixtures.html-5",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    assert order == [\"a\", 2]\nEach test here is being given its own copy of that list object,\nwhich means the order fixture is getting executed twice (the same\nis true for the first_entry fixture). If we were to do this by hand as\nwell, it would look something like this:\ndef first_entry():\n    return \"a\"\ndef order(first_entry):\n    return [first_entry]\ndef test_string(order):\n    # Act\n    order.append(\"b\")\n    # Assert\n    assert order == [\"a\", \"b\"]\ndef test_int(order):\n    # Act\n    order.append(2)\n    # Assert\n    assert order == [\"a\", 2]\nentry = first_entry()\nthe_list = order(first_entry=entry)\ntest_string(order=the_list)\nentry = first_entry()\nthe_list = order(first_entry=entry)\ntest_int(order=the_list)\nA test/fixture can request more than one fixture at a time\nTests and fixtures aren’t limited to requesting a single fixture at a time."
+  },
+  {
+    "id": "fixtures.html-6",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "Tests and fixtures aren’t limited to requesting a single fixture at a time.\nThey can request as many as they like. Here’s another quick example to\ndemonstrate:\n# contents of test_append.py\nimport pytest\n# Arrange\n@pytest.fixture\ndef first_entry():\n    return \"a\"\n# Arrange\n@pytest.fixture\ndef second_entry():\n    return 2\n# Arrange\n@pytest.fixture\ndef order(first_entry, second_entry):\n    return [first_entry, second_entry]\n# Arrange\n@pytest.fixture\ndef expected_list():\n    return [\"a\", 2, 3.0]\ndef test_string(order, expected_list):\n    # Act\n    order.append(3.0)\n    # Assert\n    assert order == expected_list\nFixtures can be requested more than once per test (return values are cached)\nFixtures can also be requested more than once during the same test, and\npytest won’t execute them again for that test. This means we can request"
+  },
+  {
+    "id": "fixtures.html-7",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "pytest won’t execute them again for that test. This means we can request\nfixtures in multiple fixtures that are dependent on them (and even again in the\ntest itself) without those fixtures being executed more than once.\n# contents of test_append.py\nimport pytest\n# Arrange\n@pytest.fixture\ndef first_entry():\n    return \"a\"\n# Arrange\n@pytest.fixture\ndef order():\n    return []\n# Act\n@pytest.fixture\ndef append_first(order, first_entry):\n    return order.append(first_entry)\ndef test_string_only(append_first, order, first_entry):\n    # Assert\n    assert order == [first_entry]\nIf a requested fixture was executed once for every time it was requested\nduring a test, then this test would fail because both append_first and\ntest_string_only would see order as an empty list (i.e. []), but\nsince the return value of order was cached (along with any side effects"
+  },
+  {
+    "id": "fixtures.html-8",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "since the return value of order was cached (along with any side effects\nexecuting it may have had) after the first time it was called, both the test and\nappend_first were referencing the same object, and the test saw the effect\nappend_first had on that object.\nAutouse fixtures (fixtures you don’t have to request)\nSometimes you may want to have a fixture (or even several) that you know all\nyour tests will depend on. “Autouse” fixtures are a convenient way to make all\ntests automatically request them. This can cut out a\nlot of redundant requests, and can even provide more advanced fixture usage\n(more on that further down).\nWe can make a fixture an autouse fixture by passing in autouse=True to the\nfixture’s decorator. Here’s a simple example for how they can be used:\n# contents of test_append.py"
+  },
+  {
+    "id": "fixtures.html-9",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "# contents of test_append.py\nimport pytest\n@pytest.fixture\ndef first_entry():\n    return \"a\"\n@pytest.fixture\ndef order(first_entry):\n    return []\n@pytest.fixture(autouse=True)\ndef append_first(order, first_entry):\n    return order.append(first_entry)\ndef test_string_only(order, first_entry):\n    assert order == [first_entry]\ndef test_string_and_int(order, first_entry):\n    order.append(2)\n    assert order == [first_entry, 2]\nIn this example, the append_first fixture is an autouse fixture. Because it\nhappens automatically, both tests are affected by it, even though neither test\nrequested it. That doesn’t mean they can’t be requested though; just\nthat it isn’t necessary.\nScope: sharing fixtures across classes, modules, packages or session\nFixtures requiring network access depend on connectivity and are"
+  },
+  {
+    "id": "fixtures.html-10",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "Fixtures requiring network access depend on connectivity and are\nusually time-expensive to create.  Extending the previous example, we\ncan add a scope=\"module\" parameter to the\n@pytest.fixture invocation\nto cause a smtp_connection fixture function, responsible to create a connection to a preexisting SMTP server, to only be invoked\nonce per test module (the default is to invoke once per test function).\nMultiple test functions in a test module will thus\neach receive the same smtp_connection fixture instance, thus saving time.\nPossible values for scope are: function, class, module, package or session.\nThe next example puts the fixture function into a separate conftest.py file\nso that tests from multiple test modules in the directory can\naccess the fixture function:\n# content of conftest.py\nimport smtplib"
+  },
+  {
+    "id": "fixtures.html-11",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "import smtplib\nimport pytest\n@pytest.fixture(scope=\"module\")\ndef smtp_connection():\n    return smtplib.SMTP(\"smtp.gmail.com\", 587, timeout=5)\n# content of test_module.py\ndef test_ehlo(smtp_connection):\n    response, msg = smtp_connection.ehlo()\n    assert response == 250\n    assert b\"smtp.gmail.com\" in msg\n    assert 0  # for demo purposes\ndef test_noop(smtp_connection):\n    response, msg = smtp_connection.noop()\n    assert response == 250\n    assert 0  # for demo purposes\nHere, the test_ehlo needs the smtp_connection fixture value.  pytest\nwill discover and call the @pytest.fixture\nmarked smtp_connection fixture function.  Running the test looks like this:\n$ pytest test_module.py\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y"
+  },
+  {
+    "id": "fixtures.html-12",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 2 items\ntest_module.py FF                                                    [100%]\n================================= FAILURES =================================\n________________________________ test_ehlo _________________________________\nsmtp_connection = <smtplib.SMTP object at 0xdeadbeef0001>\n    def test_ehlo(smtp_connection):\n        response, msg = smtp_connection.ehlo()\n        assert response == 250\n        assert b\"smtp.gmail.com\" in msg\n>       assert 0  # for demo purposes\n        ^^^^^^^^\nE       assert 0\ntest_module.py:7: AssertionError\n________________________________ test_noop _________________________________\nsmtp_connection = <smtplib.SMTP object at 0xdeadbeef0001>\n    def test_noop(smtp_connection):"
+  },
+  {
+    "id": "fixtures.html-13",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    def test_noop(smtp_connection):\n        response, msg = smtp_connection.noop()\n        assert response == 250\n>       assert 0  # for demo purposes\n        ^^^^^^^^\nE       assert 0\ntest_module.py:13: AssertionError\n========================= short test summary info ==========================\nFAILED test_module.py::test_ehlo - assert 0\nFAILED test_module.py::test_noop - assert 0\n============================ 2 failed in 0.12s =============================\nYou see the two assert 0 failing and more importantly you can also see\nthat the exact same smtp_connection object was passed into the\ntwo test functions because pytest shows the incoming argument values in the\ntraceback.  As a result, the two test functions using smtp_connection run\nas quick as a single one because they reuse the same instance."
+  },
+  {
+    "id": "fixtures.html-14",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "as quick as a single one because they reuse the same instance.\nIf you decide that you rather want to have a session-scoped smtp_connection\ninstance, you can simply declare it:\n@pytest.fixture(scope=\"session\")\ndef smtp_connection():\n    # the returned fixture value will be shared for\n    # all tests requesting it\n    ...\nFixture scopes\nFixtures are created when first requested by a test, and are destroyed based on their scope:\nfunction: the default scope, the fixture is destroyed at the end of the test.\nclass: the fixture is destroyed during teardown of the last test in the class.\nmodule: the fixture is destroyed during teardown of the last test in the module.\npackage: the fixture is destroyed during teardown of the last test in the package where the fixture is defined, including sub-packages and sub-directories within it."
+  },
+  {
+    "id": "fixtures.html-15",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "package: the fixture is destroyed during teardown of the last test in the package where the fixture is defined, including sub-packages and sub-directories within it.\nsession: the fixture is destroyed at the end of the test session.\nNote\nPytest only caches one instance of a fixture at a time, which\nmeans that when using a parametrized fixture, pytest may invoke a fixture more than once in\nthe given scope.\nDynamic scope\nAdded in version 5.2.\nIn some cases, you might want to change the scope of the fixture without changing the code.\nTo do that, pass a callable to scope. The callable must return a string with a valid scope\nand will be executed only once - during the fixture definition. It will be called with two\nkeyword arguments - fixture_name as a string and config with a configuration object."
+  },
+  {
+    "id": "fixtures.html-16",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "keyword arguments - fixture_name as a string and config with a configuration object.\nThis can be especially useful when dealing with fixtures that need time for setup, like spawning\na docker container. You can use the command-line argument to control the scope of the spawned\ncontainers for different environments. See the example below.\ndef determine_scope(fixture_name, config):\n    if config.getoption(\"--keep-containers\", None):\n        return \"session\"\n    return \"function\"\n@pytest.fixture(scope=determine_scope)\ndef docker_container():\n    yield spawn_container()\nTeardown/Cleanup (AKA Fixture finalization)\nWhen we run our tests, we’ll want to make sure they clean up after themselves so\nthey don’t mess with any other tests (and also so that we don’t leave behind a\nmountain of test data to bloat the system). Fixtures in pytest offer a very"
+  },
+  {
+    "id": "fixtures.html-17",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "mountain of test data to bloat the system). Fixtures in pytest offer a very\nuseful teardown system, which allows us to define the specific steps necessary\nfor each fixture to clean up after itself.\nThis system can be leveraged in two ways.\n1. yield fixtures (recommended)\n“Yield” fixtures yield instead of return. With these\nfixtures, we can run some code and pass an object back to the requesting\nfixture/test, just like with the other fixtures. The only differences are:\nreturn is swapped out for yield.\nAny teardown code for that fixture is placed after the yield.\nOnce pytest figures out a linear order for the fixtures, it will run each one up\nuntil it returns or yields, and then move on to the next fixture in the list to\ndo the same thing.\nOnce the test is finished, pytest will go back down the list of fixtures, but in"
+  },
+  {
+    "id": "fixtures.html-18",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "Once the test is finished, pytest will go back down the list of fixtures, but in\nthe reverse order, taking each one that yielded, and running the code inside\nit that was after the yield statement.\nAs a simple example, consider this basic email module:\n# content of emaillib.py\nclass MailAdminClient:\n    def create_user(self):\n        return MailUser()\n    def delete_user(self, user):\n        # do some cleanup\n        pass\nclass MailUser:\n    def __init__(self):\n        self.inbox = []\n    def send_email(self, email, other):\n        other.inbox.append(email)\n    def clear_mailbox(self):\n        self.inbox.clear()\nclass Email:\n    def __init__(self, subject, body):\n        self.subject = subject\n        self.body = body\nLet’s say we want to test sending email from one user to another. We’ll have to"
+  },
+  {
+    "id": "fixtures.html-19",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "Let’s say we want to test sending email from one user to another. We’ll have to\nfirst make each user, then send the email from one user to the other, and\nfinally assert that the other user received that message in their inbox. If we\nwant to clean up after the test runs, we’ll likely have to make sure the other\nuser’s mailbox is emptied before deleting that user, otherwise the system may\ncomplain.\nHere’s what that might look like:\n# content of test_emaillib.py\nfrom emaillib import Email, MailAdminClient\nimport pytest\n@pytest.fixture\ndef mail_admin():\n    return MailAdminClient()\n@pytest.fixture\ndef sending_user(mail_admin):\n    user = mail_admin.create_user()\n    yield user\n    mail_admin.delete_user(user)\n@pytest.fixture\ndef receiving_user(mail_admin):\n    user = mail_admin.create_user()\n    yield user"
+  },
+  {
+    "id": "fixtures.html-20",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    yield user\n    user.clear_mailbox()\n    mail_admin.delete_user(user)\ndef test_email_received(sending_user, receiving_user):\n    email = Email(subject=\"Hey!\", body=\"How's it going?\")\n    sending_user.send_email(email, receiving_user)\n    assert email in receiving_user.inbox\nBecause receiving_user is the last fixture to run during setup, it’s the first to run\nduring teardown.\nThere is a risk that even having the order right on the teardown side of things\ndoesn’t guarantee a safe cleanup. That’s covered in a bit more detail in\nSafe teardowns.\n$ pytest -q test_emaillib.py\n.                                                                    [100%]\n1 passed in 0.12s\nHandling errors for yield fixture\nIf a yield fixture raises an exception before yielding, pytest won’t try to run\nthe teardown code after that yield fixture’s yield statement. But, for every"
+  },
+  {
+    "id": "fixtures.html-21",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "the teardown code after that yield fixture’s yield statement. But, for every\nfixture that has already run successfully for that test, pytest will still\nattempt to tear them down as it normally would.\n2. Adding finalizers directly\nWhile yield fixtures are considered to be the cleaner and more straightforward\noption, there is another choice, and that is to add “finalizer” functions\ndirectly to the test’s request-context object. It brings a similar result as\nyield fixtures, but requires a bit more verbosity.\nIn order to use this approach, we have to request the request-context object\n(just like we would request another fixture) in the fixture we need to add\nteardown code for, and then pass a callable, containing that teardown code, to\nits addfinalizer method.\nWe have to be careful though, because pytest will run that finalizer once it’s"
+  },
+  {
+    "id": "fixtures.html-22",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "We have to be careful though, because pytest will run that finalizer once it’s\nbeen added, even if that fixture raises an exception after adding the finalizer.\nSo to make sure we don’t run the finalizer code when we wouldn’t need to, we\nwould only add the finalizer once the fixture would have done something that\nwe’d need to teardown.\nHere’s how the previous example would look using the addfinalizer method:\n# content of test_emaillib.py\nfrom emaillib import Email, MailAdminClient\nimport pytest\n@pytest.fixture\ndef mail_admin():\n    return MailAdminClient()\n@pytest.fixture\ndef sending_user(mail_admin):\n    user = mail_admin.create_user()\n    yield user\n    mail_admin.delete_user(user)\n@pytest.fixture\ndef receiving_user(mail_admin, request):\n    user = mail_admin.create_user()\n    def delete_user():"
+  },
+  {
+    "id": "fixtures.html-23",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    def delete_user():\n        mail_admin.delete_user(user)\n    request.addfinalizer(delete_user)\n    return user\n@pytest.fixture\ndef email(sending_user, receiving_user, request):\n    _email = Email(subject=\"Hey!\", body=\"How's it going?\")\n    sending_user.send_email(_email, receiving_user)\n    def empty_mailbox():\n        receiving_user.clear_mailbox()\n    request.addfinalizer(empty_mailbox)\n    return _email\ndef test_email_received(receiving_user, email):\n    assert email in receiving_user.inbox\nIt’s a bit longer than yield fixtures and a bit more complex, but it\ndoes offer some nuances for when you’re in a pinch.\n$ pytest -q test_emaillib.py\n.                                                                    [100%]\n1 passed in 0.12s\nNote on finalizer order\nFinalizers are executed in a first-in-last-out order."
+  },
+  {
+    "id": "fixtures.html-24",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "Finalizers are executed in a first-in-last-out order.\nFor yield fixtures, the first teardown code to run is from the right-most fixture, i.e. the last test parameter.\n# content of test_finalizers.py\nimport pytest\ndef test_bar(fix_w_yield1, fix_w_yield2):\n    print(\"test_bar\")\n@pytest.fixture\ndef fix_w_yield1():\n    yield\n    print(\"after_yield_1\")\n@pytest.fixture\ndef fix_w_yield2():\n    yield\n    print(\"after_yield_2\")\n$ pytest -s test_finalizers.py\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 1 item\ntest_finalizers.py test_bar\n.after_yield_2\nafter_yield_1\n============================ 1 passed in 0.12s =============================\nFor finalizers, the first fixture to run is last call to request.addfinalizer."
+  },
+  {
+    "id": "fixtures.html-25",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "For finalizers, the first fixture to run is last call to request.addfinalizer.\n# content of test_finalizers.py\nfrom functools import partial\nimport pytest\n@pytest.fixture\ndef fix_w_finalizers(request):\n    request.addfinalizer(partial(print, \"finalizer_2\"))\n    request.addfinalizer(partial(print, \"finalizer_1\"))\ndef test_bar(fix_w_finalizers):\n    print(\"test_bar\")\n$ pytest -s test_finalizers.py\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 1 item\ntest_finalizers.py test_bar\n.finalizer_1\nfinalizer_2\n============================ 1 passed in 0.12s =============================\nThis is so because yield fixtures use addfinalizer behind the scenes: when the fixture executes, addfinalizer registers a function that resumes the generator, which in turn calls the teardown code."
+  },
+  {
+    "id": "fixtures.html-26",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "This is so because yield fixtures use addfinalizer behind the scenes: when the fixture executes, addfinalizer registers a function that resumes the generator, which in turn calls the teardown code.\nSafe teardowns\nThe fixture system of pytest is very powerful, but it’s still being run by a\ncomputer, so it isn’t able to figure out how to safely teardown everything we\nthrow at it. If we aren’t careful, an error in the wrong spot might leave stuff\nfrom our tests behind, and that can cause further issues pretty quickly.\nFor example, consider the following tests (based off of the mail example from\nabove):\n# content of test_emaillib.py\nfrom emaillib import Email, MailAdminClient\nimport pytest\n@pytest.fixture\ndef setup():\n    mail_admin = MailAdminClient()\n    sending_user = mail_admin.create_user()"
+  },
+  {
+    "id": "fixtures.html-27",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    sending_user = mail_admin.create_user()\n    receiving_user = mail_admin.create_user()\n    email = Email(subject=\"Hey!\", body=\"How's it going?\")\n    sending_user.send_email(email, receiving_user)\n    yield receiving_user, email\n    receiving_user.clear_mailbox()\n    mail_admin.delete_user(sending_user)\n    mail_admin.delete_user(receiving_user)\ndef test_email_received(setup):\n    receiving_user, email = setup\n    assert email in receiving_user.inbox\nThis version is a lot more compact, but it’s also harder to read, doesn’t have a\nvery descriptive fixture name, and none of the fixtures can be reused easily.\nThere’s also a more serious issue, which is that if any of those steps in the\nsetup raise an exception, none of the teardown code will run.\nOne option might be to go with the addfinalizer method instead of yield"
+  },
+  {
+    "id": "fixtures.html-28",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "One option might be to go with the addfinalizer method instead of yield\nfixtures, but that might get pretty complex and difficult to maintain (and it\nwouldn’t be compact anymore).\n$ pytest -q test_emaillib.py\n.                                                                    [100%]\n1 passed in 0.12s\nSafe fixture structure\nThe safest and simplest fixture structure requires limiting fixtures to only\nmaking one state-changing action each, and then bundling them together with\ntheir teardown code, as the email examples above showed.\nThe chance that a state-changing operation can fail but still modify state is\nnegligible, as most of these operations tend to be transaction-based (at least at the\nlevel of testing where state could be left behind). So if we make sure that any\nsuccessful state-changing action gets torn down by moving it to a separate"
+  },
+  {
+    "id": "fixtures.html-29",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "successful state-changing action gets torn down by moving it to a separate\nfixture function and separating it from other, potentially failing\nstate-changing actions, then our tests will stand the best chance at leaving\nthe test environment the way they found it.\nFor an example, let’s say we have a website with a login page, and we have\naccess to an admin API where we can generate users. For our test, we want to:\nCreate a user through that admin API\nLaunch a browser using Selenium\nGo to the login page of our site\nLog in as the user we created\nAssert that their name is in the header of the landing page\nWe wouldn’t want to leave that user in the system, nor would we want to leave\nthat browser session running, so we’ll want to make sure the fixtures that\ncreate those things clean up after themselves."
+  },
+  {
+    "id": "fixtures.html-30",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "create those things clean up after themselves.\nHere’s what that might look like:\nNote\nFor this example, certain fixtures (i.e. base_url and\nadmin_credentials) are implied to exist elsewhere. So for now, let’s\nassume they exist, and we’re just not looking at them.\nfrom uuid import uuid4\nfrom urllib.parse import urljoin\nfrom selenium.webdriver import Chrome\nimport pytest\nfrom src.utils.pages import LoginPage, LandingPage\nfrom src.utils import AdminApiClient\nfrom src.utils.data_types import User\n@pytest.fixture\ndef admin_client(base_url, admin_credentials):\n    return AdminApiClient(base_url, **admin_credentials)\n@pytest.fixture\ndef user(admin_client):\n    _user = User(name=\"Susan\", username=f\"testuser-{uuid4()}\", password=\"P4$$word\")\n    admin_client.create_user(_user)\n    yield _user\n    admin_client.delete_user(_user)"
+  },
+  {
+    "id": "fixtures.html-31",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    admin_client.delete_user(_user)\n@pytest.fixture\ndef driver():\n    _driver = Chrome()\n    yield _driver\n    _driver.quit()\n@pytest.fixture\ndef login(driver, base_url, user):\n    driver.get(urljoin(base_url, \"/login\"))\n    page = LoginPage(driver)\n    page.login(user)\n@pytest.fixture\ndef landing_page(driver, login):\n    return LandingPage(driver)\ndef test_name_on_landing_page_after_login(landing_page, user):\n    assert landing_page.header == f\"Welcome, {user.name}!\"\nThe way the dependencies are laid out means it’s unclear if the user\nfixture would execute before the driver fixture. But that’s ok, because\nthose are atomic operations, and so it doesn’t matter which one runs first\nbecause the sequence of events for the test is still linearizable. But what does matter is\nthat, no matter which one runs first, if the one raises an exception while the"
+  },
+  {
+    "id": "fixtures.html-32",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "that, no matter which one runs first, if the one raises an exception while the\nother would not have, neither will have left anything behind. If driver\nexecutes before user, and user raises an exception, the driver will\nstill quit, and the user was never made. And if driver was the one to raise\nthe exception, then the driver would never have been started and the user would\nnever have been made.\nRunning multiple assert statements safely\nSometimes you may want to run multiple asserts after doing all that setup, which\nmakes sense as, in more complex systems, a single action can kick off multiple\nbehaviors. pytest has a convenient way of handling this and it combines a bunch\nof what we’ve gone over so far.\nAll that’s needed is stepping up to a larger scope, then having the act\nstep defined as an autouse fixture, and finally, making sure all the fixtures"
+  },
+  {
+    "id": "fixtures.html-33",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "step defined as an autouse fixture, and finally, making sure all the fixtures\nare targeting that higher level scope.\nLet’s pull an example from above, and tweak it a\nbit. Let’s say that in addition to checking for a welcome message in the header,\nwe also want to check for a sign out button, and a link to the user’s profile.\nLet’s take a look at how we can structure that so we can run multiple asserts\nwithout having to repeat all those steps again.\nNote\nFor this example, certain fixtures (i.e. base_url and\nadmin_credentials) are implied to exist elsewhere. So for now, let’s\nassume they exist, and we’re just not looking at them.\n# contents of tests/end_to_end/test_login.py\nfrom uuid import uuid4\nfrom urllib.parse import urljoin\nfrom selenium.webdriver import Chrome\nimport pytest\nfrom src.utils.pages import LoginPage, LandingPage"
+  },
+  {
+    "id": "fixtures.html-34",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "from src.utils.pages import LoginPage, LandingPage\nfrom src.utils import AdminApiClient\nfrom src.utils.data_types import User\n@pytest.fixture(scope=\"class\")\ndef admin_client(base_url, admin_credentials):\n    return AdminApiClient(base_url, **admin_credentials)\n@pytest.fixture(scope=\"class\")\ndef user(admin_client):\n    _user = User(name=\"Susan\", username=f\"testuser-{uuid4()}\", password=\"P4$$word\")\n    admin_client.create_user(_user)\n    yield _user\n    admin_client.delete_user(_user)\n@pytest.fixture(scope=\"class\")\ndef driver():\n    _driver = Chrome()\n    yield _driver\n    _driver.quit()\n@pytest.fixture(scope=\"class\")\ndef landing_page(driver, login):\n    return LandingPage(driver)\nclass TestLandingPageSuccess:\n    @pytest.fixture(scope=\"class\", autouse=True)\n    @classmethod\n    def login(cls, driver, base_url, user):"
+  },
+  {
+    "id": "fixtures.html-35",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    def login(cls, driver, base_url, user):\n        driver.get(urljoin(base_url, \"/login\"))\n        page = LoginPage(driver)\n        page.login(user)\n    def test_name_in_header(self, landing_page, user):\n        assert landing_page.header == f\"Welcome, {user.name}!\"\n    def test_sign_out_button(self, landing_page):\n        assert landing_page.sign_out_button.is_displayed()\n    def test_profile_link(self, landing_page, user):\n        profile_href = urljoin(base_url, f\"/profile?id={user.profile_id}\")\n        assert landing_page.profile_link.get_attribute(\"href\") == profile_href\nNotice that the methods are only referencing self in the signature as a\nformality. No state is tied to the actual test class as it might be in the\nunittest.TestCase framework. Everything is managed by the pytest fixture"
+  },
+  {
+    "id": "fixtures.html-36",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "unittest.TestCase framework. Everything is managed by the pytest fixture\nsystem.\nEach method only has to request the fixtures that it actually needs without\nworrying about order. This is because the act fixture is an autouse fixture,\nand it made sure all the other fixtures executed before it. There’s no more\nchanges of state that need to take place, so the tests are free to make as many\nnon-state-changing queries as they want without risking stepping on the toes of\nthe other tests.\nThe login fixture is defined inside the class as well, because not every one\nof the other tests in the module will be expecting a successful login, and the act may need to\nbe handled a little differently for another test class. For example, if we\nwanted to write another test scenario around submitting bad credentials, we"
+  },
+  {
+    "id": "fixtures.html-37",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "wanted to write another test scenario around submitting bad credentials, we\ncould handle it by adding something like this to the test file:\nclass TestLandingPageBadCredentials:\n    @pytest.fixture(scope=\"class\")\n    @classmethod\n    def faux_user(cls, user):\n        _user = deepcopy(user)\n        _user.password = \"badpass\"\n        return _user\n    def test_raises_bad_credentials_exception(self, login_page, faux_user):\n        with pytest.raises(BadCredentialsException):\n            login_page.login(faux_user)\nFixtures can introspect the requesting test context\nFixture functions can accept the request object\nto introspect the “requesting” test function, class or module context.\nFurther extending the previous smtp_connection fixture example, let’s\nread an optional server URL from the test module which uses our fixture:"
+  },
+  {
+    "id": "fixtures.html-38",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "read an optional server URL from the test module which uses our fixture:\n# content of conftest.py\nimport smtplib\nimport pytest\n@pytest.fixture(scope=\"module\")\ndef smtp_connection(request):\n    server = getattr(request.module, \"smtpserver\", \"smtp.gmail.com\")\n    smtp_connection = smtplib.SMTP(server, 587, timeout=5)\n    yield smtp_connection\n    print(f\"finalizing {smtp_connection} ({server})\")\n    smtp_connection.close()\nWe use the request.module attribute to optionally obtain an\nsmtpserver attribute from the test module.  If we just execute\nagain, nothing much has changed:\n$ pytest -s -q --tb=no test_module.py\nFFfinalizing <smtplib.SMTP object at 0xdeadbeef0002> (smtp.gmail.com)\n========================= short test summary info ==========================\nFAILED test_module.py::test_ehlo - assert 0"
+  },
+  {
+    "id": "fixtures.html-39",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "FAILED test_module.py::test_ehlo - assert 0\nFAILED test_module.py::test_noop - assert 0\n2 failed in 0.12s\nLet’s quickly create another test module that actually sets the\nserver URL in its module namespace:\n# content of test_anothersmtp.py\nsmtpserver = \"mail.python.org\"  # will be read by smtp fixture\ndef test_showhelo(smtp_connection):\n    assert 0, smtp_connection.helo()\nRunning it:\n$ pytest -qq --tb=short test_anothersmtp.py\nF                                                                    [100%]\n================================= FAILURES =================================\n______________________________ test_showhelo _______________________________\ntest_anothersmtp.py:6: in test_showhelo\n    assert 0, smtp_connection.helo()\nE   AssertionError: (250, b'mail.python.org')\nE   assert 0\n------------------------- Captured stdout teardown -------------------------"
+  },
+  {
+    "id": "fixtures.html-40",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "------------------------- Captured stdout teardown -------------------------\nfinalizing <smtplib.SMTP object at 0xdeadbeef0003> (mail.python.org)\n========================= short test summary info ==========================\nFAILED test_anothersmtp.py::test_showhelo - AssertionError: (250, b'mail....\nvoila! The smtp_connection fixture function picked up our mail server name\nfrom the module namespace.\nUsing markers to pass data to fixtures\nUsing the request object, a fixture can also access\nmarkers which are applied to a test function. This can be useful to pass data\ninto a fixture from a test:\nimport pytest\n@pytest.fixture\ndef fixt(request):\n    marker = request.node.get_closest_marker(\"fixt_data\")\n    if marker is None:\n        # Handle missing marker in some way...\n        data = None\n    else:"
+  },
+  {
+    "id": "fixtures.html-41",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    else:\n        data = marker.args[0]\n    # Do something with the data\n    return data\n@pytest.mark.fixt_data(42)\ndef test_fixt(fixt):\n    assert fixt == 42\nFactories as fixtures\nThe “factory as fixture” pattern can help in situations where the result\nof a fixture is needed multiple times in a single test. Instead of returning\ndata directly, the fixture instead returns a function which generates the data.\nThis function can then be called multiple times in the test.\nFactories can have parameters as needed:\n@pytest.fixture\ndef make_customer_record():\n    def _make_customer_record(name):\n        return {\"name\": name, \"orders\": []}\n    return _make_customer_record\ndef test_customer_records(make_customer_record):\n    customer_1 = make_customer_record(\"Lisa\")\n    customer_2 = make_customer_record(\"Mike\")"
+  },
+  {
+    "id": "fixtures.html-42",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    customer_2 = make_customer_record(\"Mike\")\n    customer_3 = make_customer_record(\"Meredith\")\nIf the data created by the factory requires managing, the fixture can take care of that:\n@pytest.fixture\ndef make_customer_record():\n    created_records = []\n    def _make_customer_record(name):\n        record = models.Customer(name=name, orders=[])\n        created_records.append(record)\n        return record\n    yield _make_customer_record\n    for record in created_records:\n        record.destroy()\ndef test_customer_records(make_customer_record):\n    customer_1 = make_customer_record(\"Lisa\")\n    customer_2 = make_customer_record(\"Mike\")\n    customer_3 = make_customer_record(\"Meredith\")\nParametrizing fixtures\nFixture functions can be parametrized in which case they will be called\nmultiple times, each time executing the set of dependent tests, i.e. the"
+  },
+  {
+    "id": "fixtures.html-43",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "multiple times, each time executing the set of dependent tests, i.e. the\ntests that depend on this fixture.  Test functions usually do not need\nto be aware of their re-running.  Fixture parametrization helps to\nwrite exhaustive functional tests for components which themselves can be\nconfigured in multiple ways.\nExtending the previous example, we can flag the fixture to create two\nsmtp_connection fixture instances which will cause all tests using the fixture\nto run twice.  The fixture function gets access to each parameter\nthrough the special request object:\n# content of conftest.py\nimport smtplib\nimport pytest\n@pytest.fixture(scope=\"module\", params=[\"smtp.gmail.com\", \"mail.python.org\"])\ndef smtp_connection(request):\n    smtp_connection = smtplib.SMTP(request.param, 587, timeout=5)\n    yield smtp_connection"
+  },
+  {
+    "id": "fixtures.html-44",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    yield smtp_connection\n    print(f\"finalizing {smtp_connection}\")\n    smtp_connection.close()\nThe main change is the declaration of params with\n@pytest.fixture, a list of values\nfor each of which the fixture function will execute and can access\na value via request.param.  No test function code needs to change.\nSo let’s just do another run:\n$ pytest -q test_module.py\nFFFF                                                                 [100%]\n================================= FAILURES =================================\n________________________ test_ehlo[smtp.gmail.com] _________________________\nsmtp_connection = <smtplib.SMTP object at 0xdeadbeef0004>\n    def test_ehlo(smtp_connection):\n        response, msg = smtp_connection.ehlo()\n        assert response == 250\n        assert b\"smtp.gmail.com\" in msg"
+  },
+  {
+    "id": "fixtures.html-45",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "        assert b\"smtp.gmail.com\" in msg\n>       assert 0  # for demo purposes\n        ^^^^^^^^\nE       assert 0\ntest_module.py:7: AssertionError\n________________________ test_noop[smtp.gmail.com] _________________________\nsmtp_connection = <smtplib.SMTP object at 0xdeadbeef0004>\n    def test_noop(smtp_connection):\n        response, msg = smtp_connection.noop()\n        assert response == 250\n>       assert 0  # for demo purposes\n        ^^^^^^^^\nE       assert 0\ntest_module.py:13: AssertionError\n________________________ test_ehlo[mail.python.org] ________________________\nsmtp_connection = <smtplib.SMTP object at 0xdeadbeef0005>\n    def test_ehlo(smtp_connection):\n        response, msg = smtp_connection.ehlo()\n        assert response == 250\n>       assert b\"smtp.gmail.com\" in msg\nE       AssertionError: assert b'smtp.gmail.com' in b'mail.python.org\\nPIPELINING\\nSIZE 51200000\\nETRN\\nSTARTTLS\\nAUTH DIGEST-MD5 NTLM CRAM-MD5\\nENHANCEDSTATUSCODES\\n8BITMIME\\nDSN\\nSMTPUTF8\\nCHUNKING'"
+  },
+  {
+    "id": "fixtures.html-46",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "E       AssertionError: assert b'smtp.gmail.com' in b'mail.python.org\\nPIPELINING\\nSIZE 51200000\\nETRN\\nSTARTTLS\\nAUTH DIGEST-MD5 NTLM CRAM-MD5\\nENHANCEDSTATUSCODES\\n8BITMIME\\nDSN\\nSMTPUTF8\\nCHUNKING'\ntest_module.py:6: AssertionError\n-------------------------- Captured stdout setup ---------------------------\nfinalizing <smtplib.SMTP object at 0xdeadbeef0004>\n________________________ test_noop[mail.python.org] ________________________\nsmtp_connection = <smtplib.SMTP object at 0xdeadbeef0005>\n    def test_noop(smtp_connection):\n        response, msg = smtp_connection.noop()\n        assert response == 250\n>       assert 0  # for demo purposes\n        ^^^^^^^^\nE       assert 0\ntest_module.py:13: AssertionError\n------------------------- Captured stdout teardown -------------------------\nfinalizing <smtplib.SMTP object at 0xdeadbeef0005>"
+  },
+  {
+    "id": "fixtures.html-47",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "finalizing <smtplib.SMTP object at 0xdeadbeef0005>\n========================= short test summary info ==========================\nFAILED test_module.py::test_ehlo[smtp.gmail.com] - assert 0\nFAILED test_module.py::test_noop[smtp.gmail.com] - assert 0\nFAILED test_module.py::test_ehlo[mail.python.org] - AssertionError: asser...\nFAILED test_module.py::test_noop[mail.python.org] - assert 0\n4 failed in 0.12s\nWe see that our two test functions each ran twice, against the different\nsmtp_connection instances.  Note also, that with the mail.python.org\nconnection the second test fails in test_ehlo because a\ndifferent server string is expected than what arrived.\npytest will build a string that is the test ID for each fixture value\nin a parametrized fixture, e.g. test_ehlo[smtp.gmail.com] and\ntest_ehlo[mail.python.org] in the above examples.  These IDs can"
+  },
+  {
+    "id": "fixtures.html-48",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "test_ehlo[mail.python.org] in the above examples.  These IDs can\nbe used with -k to select specific cases to run, and they will\nalso identify the specific case when one is failing.  Running pytest\nwith --collect-only will show the generated IDs.\nNumbers, strings, booleans and None will have their usual string\nrepresentation used in the test ID. For other objects, pytest will\nmake a string based on the argument name.  It is possible to customise\nthe string used in a test ID for a certain fixture value by using the\nids keyword argument:\n# content of test_ids.py\nimport pytest\n@pytest.fixture(params=[0, 1], ids=[\"spam\", \"ham\"])\ndef a(request):\n    return request.param\ndef test_a(a):\n    pass\ndef idfn(fixture_value):\n    if fixture_value == 0:\n        return \"eggs\"\n    else:\n        return None"
+  },
+  {
+    "id": "fixtures.html-49",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "        return None\n@pytest.fixture(params=[0, 1], ids=idfn)\ndef b(request):\n    return request.param\ndef test_b(b):\n    pass\nThe above shows how ids can be either a list of strings to use or\na function which will be called with the fixture value and then\nhas to return a string to use.  In the latter case if the function\nreturns None then pytest’s auto-generated ID will be used.\nRunning the above tests results in the following test IDs being used:\n$ pytest --collect-only\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 12 items\n<Dir fixtures.rst-237>\n  <Module test_anothersmtp.py>\n    <Function test_showhelo[smtp.gmail.com]>\n    <Function test_showhelo[mail.python.org]>"
+  },
+  {
+    "id": "fixtures.html-50",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    <Function test_showhelo[mail.python.org]>\n  <Module test_emaillib.py>\n    <Function test_email_received>\n  <Module test_finalizers.py>\n    <Function test_bar>\n  <Module test_ids.py>\n    <Function test_a[spam]>\n    <Function test_a[ham]>\n    <Function test_b[eggs]>\n    <Function test_b[1]>\n  <Module test_module.py>\n    <Function test_ehlo[smtp.gmail.com]>\n    <Function test_noop[smtp.gmail.com]>\n    <Function test_ehlo[mail.python.org]>\n    <Function test_noop[mail.python.org]>\n======================= 12 tests collected in 0.12s ========================\nUsing marks with parametrized fixtures\npytest.param() can be used to apply marks in values sets of parametrized fixtures in the same way\nthat they can be used with @pytest.mark.parametrize.\nExample:\n# content of test_fixture_marks.py\nimport pytest"
+  },
+  {
+    "id": "fixtures.html-51",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "import pytest\n@pytest.fixture(params=[0, 1, pytest.param(2, marks=pytest.mark.skip)])\ndef data_set(request):\n    return request.param\ndef test_data(data_set):\n    pass\nRunning this test will skip the invocation of data_set with value 2:\n$ pytest test_fixture_marks.py -v\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python\ncachedir: .pytest_cache\nrootdir: /home/sweet/project\ncollecting ... collected 3 items\ntest_fixture_marks.py::test_data[0] PASSED                           [ 33%]\ntest_fixture_marks.py::test_data[1] PASSED                           [ 66%]\ntest_fixture_marks.py::test_data[2] SKIPPED (unconditional skip)     [100%]\n======================= 2 passed, 1 skipped in 0.12s ======================="
+  },
+  {
+    "id": "fixtures.html-52",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "======================= 2 passed, 1 skipped in 0.12s =======================\nModularity: using fixtures from a fixture function\nIn addition to using fixtures in test functions, fixture functions\ncan use other fixtures themselves.  This contributes to a modular design\nof your fixtures and allows reuse of framework-specific fixtures across\nmany projects.  As a simple example, we can extend the previous example\nand instantiate an object app where we stick the already defined\nsmtp_connection resource into it:\n# content of test_appsetup.py\nimport pytest\nclass App:\n    def __init__(self, smtp_connection):\n        self.smtp_connection = smtp_connection\n@pytest.fixture(scope=\"module\")\ndef app(smtp_connection):\n    return App(smtp_connection)\ndef test_smtp_connection_exists(app):\n    assert app.smtp_connection"
+  },
+  {
+    "id": "fixtures.html-53",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    assert app.smtp_connection\nHere we declare an app fixture which receives the previously defined\nsmtp_connection fixture and instantiates an App object with it.  Let’s run it:\n$ pytest -v test_appsetup.py\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python\ncachedir: .pytest_cache\nrootdir: /home/sweet/project\ncollecting ... collected 2 items\ntest_appsetup.py::test_smtp_connection_exists[smtp.gmail.com] PASSED [ 50%]\ntest_appsetup.py::test_smtp_connection_exists[mail.python.org] PASSED [100%]\n============================ 2 passed in 0.12s =============================\nDue to the parametrization of smtp_connection, the test will run twice with two\ndifferent App instances and respective smtp servers.  There is no"
+  },
+  {
+    "id": "fixtures.html-54",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "different App instances and respective smtp servers.  There is no\nneed for the app fixture to be aware of the smtp_connection\nparametrization because pytest will fully analyse the fixture dependency graph.\nNote that the app fixture has a scope of module and uses a\nmodule-scoped smtp_connection fixture.  The example would still work if\nsmtp_connection was cached on a session scope: it is fine for fixtures to use\n“broader” scoped fixtures but not the other way round:\nA session-scoped fixture could not use a module-scoped one in a\nmeaningful way.\nAutomatic grouping of tests by fixture instances\npytest minimizes the number of active fixtures during test runs.\nIf you have a parametrized fixture, then all the tests using it will\nfirst execute with one instance and then finalizers are called\nbefore the next fixture instance is created.  Among other things,"
+  },
+  {
+    "id": "fixtures.html-55",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "before the next fixture instance is created.  Among other things,\nthis eases testing of applications which create and use global state.\nThe following example uses two parametrized fixtures, one of which is\nscoped on a per-module basis, and all the functions perform print calls\nto show the setup/teardown flow:\n# content of test_module.py\nimport pytest\n@pytest.fixture(scope=\"module\", params=[\"mod1\", \"mod2\"])\ndef modarg(request):\n    param = request.param\n    print(\"  SETUP modarg\", param)\n    yield param\n    print(\"  TEARDOWN modarg\", param)\n@pytest.fixture(scope=\"function\", params=[1, 2])\ndef otherarg(request):\n    param = request.param\n    print(\"  SETUP otherarg\", param)\n    yield param\n    print(\"  TEARDOWN otherarg\", param)\ndef test_0(otherarg):\n    print(\"  RUN test0 with otherarg\", otherarg)"
+  },
+  {
+    "id": "fixtures.html-56",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    print(\"  RUN test0 with otherarg\", otherarg)\ndef test_1(modarg):\n    print(\"  RUN test1 with modarg\", modarg)\ndef test_2(otherarg, modarg):\n    print(f\"  RUN test2 with otherarg {otherarg} and modarg {modarg}\")\nLet’s run the tests in verbose mode and with looking at the print-output:\n$ pytest -v -s test_module.py\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python\ncachedir: .pytest_cache\nrootdir: /home/sweet/project\ncollecting ... collected 8 items\ntest_module.py::test_0[1]   SETUP otherarg 1\n  RUN test0 with otherarg 1\nPASSED  TEARDOWN otherarg 1\ntest_module.py::test_0[2]   SETUP otherarg 2\n  RUN test0 with otherarg 2\nPASSED  TEARDOWN otherarg 2\ntest_module.py::test_1[mod1]   SETUP modarg mod1"
+  },
+  {
+    "id": "fixtures.html-57",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "test_module.py::test_1[mod1]   SETUP modarg mod1\n  RUN test1 with modarg mod1\nPASSED\ntest_module.py::test_2[mod1-1]   SETUP otherarg 1\n  RUN test2 with otherarg 1 and modarg mod1\nPASSED  TEARDOWN otherarg 1\ntest_module.py::test_2[mod1-2]   SETUP otherarg 2\n  RUN test2 with otherarg 2 and modarg mod1\nPASSED  TEARDOWN otherarg 2\ntest_module.py::test_1[mod2]   TEARDOWN modarg mod1\n  SETUP modarg mod2\n  RUN test1 with modarg mod2\nPASSED\ntest_module.py::test_2[mod2-1]   SETUP otherarg 1\n  RUN test2 with otherarg 1 and modarg mod2\nPASSED  TEARDOWN otherarg 1\ntest_module.py::test_2[mod2-2]   SETUP otherarg 2\n  RUN test2 with otherarg 2 and modarg mod2\nPASSED  TEARDOWN otherarg 2\n  TEARDOWN modarg mod2\n============================ 8 passed in 0.12s =============================\nYou can see that the parametrized module-scoped modarg resource caused an"
+  },
+  {
+    "id": "fixtures.html-58",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "You can see that the parametrized module-scoped modarg resource caused an\nordering of test execution that led to the fewest possible “active” resources.\nThe finalizer for the mod1 parametrized resource was executed before the\nmod2 resource was setup.\nIn particular notice that test_0 is completely independent and finishes first.\nThen test_1 is executed with mod1, then test_2 with mod1, then test_1\nwith mod2 and finally test_2 with mod2.\nThe otherarg parametrized resource (having function scope) was set up before\nand torn down after every test that used it.\nUse fixtures in classes and modules with usefixtures\nSometimes test functions do not directly need access to a fixture object.\nFor example, tests may require to operate with an empty directory as the\ncurrent working directory but otherwise do not care for the concrete"
+  },
+  {
+    "id": "fixtures.html-59",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "current working directory but otherwise do not care for the concrete\ndirectory.  Here is how you can use the standard tempfile\nand pytest fixtures to\nachieve it.  We separate the creation of the fixture into a conftest.py\nfile:\n# content of conftest.py\nimport os\nimport tempfile\nimport pytest\n@pytest.fixture\ndef cleandir():\n    with tempfile.TemporaryDirectory() as newpath:\n        old_cwd = os.getcwd()\n        os.chdir(newpath)\n        yield\n        os.chdir(old_cwd)\nand declare its use in a test module via a usefixtures marker:\n# content of test_setenv.py\nimport os\nimport pytest\n@pytest.mark.usefixtures(\"cleandir\")\nclass TestDirectoryInit:\n    def test_cwd_starts_empty(self):\n        assert os.listdir(os.getcwd()) == []\n        with open(\"myfile\", \"w\", encoding=\"utf-8\") as f:\n            f.write(\"hello\")"
+  },
+  {
+    "id": "fixtures.html-60",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "            f.write(\"hello\")\n    def test_cwd_again_starts_empty(self):\n        assert os.listdir(os.getcwd()) == []\nDue to the usefixtures marker, the cleandir fixture\nwill be required for the execution of each test method, just as if\nyou specified a “cleandir” function argument to each of them.  Let’s run it\nto verify our fixture is activated and the tests pass:\n$ pytest -q\n..                                                                   [100%]\n2 passed in 0.12s\nYou can specify multiple fixtures like this:\n@pytest.mark.usefixtures(\"cleandir\", \"anotherfixture\")\ndef test(): ...\nand you may specify fixture usage at the test module level using pytestmark:\npytestmark = pytest.mark.usefixtures(\"cleandir\")\nIt is also possible to put fixtures required by all tests in your project\ninto a configuration file:"
+  },
+  {
+    "id": "fixtures.html-61",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "into a configuration file:\n# content of pytest.toml\n[pytest]\nusefixtures = [\"cleandir\"]\nWarning\n@pytest.mark.usefixtures cannot be used on fixture functions. For example,\nthis is an error:\n@pytest.mark.usefixtures(\"my_other_fixture\")\n@pytest.fixture\ndef my_fixture_that_sadly_wont_use_my_other_fixture(): ...\nOverriding fixtures on various levels\nIn a relatively large test suite, you may want to override a fixture, to augment\nor change its behavior inside of certain test modules or directories.\nOverride a fixture on a directory (conftest) level\nGiven the tests file structure is:\ntests/\n    conftest.py\n        # content of tests/conftest.py\n        import pytest\n        @pytest.fixture\n        def username():\n            return 'username'\n    test_something.py\n        # content of tests/test_something.py"
+  },
+  {
+    "id": "fixtures.html-62",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "        # content of tests/test_something.py\n        def test_username(username):\n            assert username == 'username'\n    subdir/\n        conftest.py\n            # content of tests/subdir/conftest.py\n            import pytest\n            @pytest.fixture\n            def username(username):\n                return 'overridden-' + username\n        test_something_else.py\n            # content of tests/subdir/test_something_else.py\n            def test_username(username):\n                assert username == 'overridden-username'\nAs you can see, a fixture with the same name can be overridden for a certain test directory level.\nNote that the base or super fixture can be accessed from the overriding\nfixture easily - used in the example above.\nOverride a fixture on a test module level\nGiven the tests file structure is:"
+  },
+  {
+    "id": "fixtures.html-63",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "Given the tests file structure is:\ntests/\n    conftest.py\n        # content of tests/conftest.py\n        import pytest\n        @pytest.fixture\n        def username():\n            return 'username'\n    test_something.py\n        # content of tests/test_something.py\n        import pytest\n        @pytest.fixture\n        def username(username):\n            return 'overridden-' + username\n        def test_username(username):\n            assert username == 'overridden-username'\n    test_something_else.py\n        # content of tests/test_something_else.py\n        import pytest\n        @pytest.fixture\n        def username(username):\n            return 'overridden-else-' + username\n        def test_username(username):\n            assert username == 'overridden-else-username'\nIn the example above, a fixture with the same name can be overridden for a certain test module."
+  },
+  {
+    "id": "fixtures.html-64",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "In the example above, a fixture with the same name can be overridden for a certain test module.\nOverride a fixture with direct test parametrization\nGiven the tests file structure is:\ntests/\n    conftest.py\n        # content of tests/conftest.py\n        import pytest\n        @pytest.fixture\n        def username():\n            return 'username'\n        @pytest.fixture\n        def other_username(username):\n            return 'other-' + username\n    test_something.py\n        # content of tests/test_something.py\n        import pytest\n        @pytest.mark.parametrize('username', ['directly-overridden-username'])\n        def test_username(username):\n            assert username == 'directly-overridden-username'\n        @pytest.mark.parametrize('username', ['directly-overridden-username-other'])\n        def test_username_other(other_username):"
+  },
+  {
+    "id": "fixtures.html-65",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "        def test_username_other(other_username):\n            assert other_username == 'other-directly-overridden-username-other'\nIn the example above, a fixture value is overridden by the test parameter value. Note that the value of the fixture\ncan be overridden this way even if the test doesn’t use it directly (doesn’t mention it in the function prototype).\nOverride a parametrized fixture with non-parametrized one and vice versa\nGiven the tests file structure is:\ntests/\n    conftest.py\n        # content of tests/conftest.py\n        import pytest\n        @pytest.fixture(params=['one', 'two', 'three'])\n        def parametrized_username(request):\n            return request.param\n        @pytest.fixture\n        def non_parametrized_username(request):\n            return 'username'\n    test_something.py"
+  },
+  {
+    "id": "fixtures.html-66",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "    test_something.py\n        # content of tests/test_something.py\n        import pytest\n        @pytest.fixture\n        def parametrized_username():\n            return 'overridden-username'\n        @pytest.fixture(params=['one', 'two', 'three'])\n        def non_parametrized_username(request):\n            return request.param\n        def test_username(parametrized_username):\n            assert parametrized_username == 'overridden-username'\n        def test_parametrized_username(non_parametrized_username):\n            assert non_parametrized_username in ['one', 'two', 'three']\n    test_something_else.py\n        # content of tests/test_something_else.py\n        def test_username(parametrized_username):\n            assert parametrized_username in ['one', 'two', 'three']\n        def test_username(non_parametrized_username):"
+  },
+  {
+    "id": "fixtures.html-67",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "        def test_username(non_parametrized_username):\n            assert non_parametrized_username == 'username'\nIn the example above, a parametrized fixture is overridden with a non-parametrized version, and\na non-parametrized fixture is overridden with a parametrized version for certain test module.\nThe same applies for the test directory level obviously.\nUsing fixtures from other projects\nUsually projects that provide pytest support will use entry points,\nso just installing those projects into an environment will make those fixtures available for use.\nIn case you want to use fixtures from a project that does not use entry points, you can\ndefine pytest_plugins in your top conftest.py file to register that module\nas a plugin.\nSuppose you have some fixtures in mylibrary.fixtures and you want to reuse them into your"
+  },
+  {
+    "id": "fixtures.html-68",
+    "source": "https://docs.pytest.org/en/stable/how-to/fixtures.html",
+    "text": "Suppose you have some fixtures in mylibrary.fixtures and you want to reuse them into your\napp/tests directory.\nAll you need to do is to define pytest_plugins in app/tests/conftest.py\npointing to that module.\npytest_plugins = \"mylibrary.fixtures\"\nThis effectively registers mylibrary.fixtures as a plugin, making all its fixtures and\nhooks available to tests in app/tests.\nNote\nSometimes users will import fixtures from other projects for use, however this is not\nrecommended: importing fixtures into a module will register them in pytest\nas defined in that module.\nThis has minor consequences, such as appearing multiple times in pytest --help,\nbut it is not recommended because this behavior might change/stop working\nin future versions."
+  },
+  {
+    "id": "parametrize.html-0",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "How to parametrize fixtures and test functions\npytest enables test parametrization at several levels:\npytest.fixture() allows one to parametrize fixture\nfunctions.\n@pytest.mark.parametrize allows one to define multiple sets of\narguments and fixtures at the test function or class.\npytest_generate_tests allows one to define custom parametrization\nschemes or extensions.\nNote\nSee How to use subtests for an alternative to parametrization.\n@pytest.mark.parametrize: parametrizing test functions\nThe builtin pytest.mark.parametrize decorator enables\nparametrization of arguments for a test function.  Here is a typical example\nof a test function that implements checking that a certain input leads\nto an expected output:\n# content of test_expectation.py\nimport pytest\n@pytest.mark.parametrize(\"test_input,expected\", [(\"3+5\", 8), (\"2+4\", 6), (\"6*9\", 42)])"
+  },
+  {
+    "id": "parametrize.html-1",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "@pytest.mark.parametrize(\"test_input,expected\", [(\"3+5\", 8), (\"2+4\", 6), (\"6*9\", 42)])\ndef test_eval(test_input, expected):\n    assert eval(test_input) == expected\nHere, the @parametrize decorator defines three different (test_input,expected)\ntuples so that the test_eval function will run three times using\nthem in turn:\n$ pytest\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 3 items\ntest_expectation.py ..F                                              [100%]\n================================= FAILURES =================================\n____________________________ test_eval[6*9-42] _____________________________\ntest_input = '6*9', expected = 42\n    @pytest.mark.parametrize(\"test_input,expected\", [(\"3+5\", 8), (\"2+4\", 6), (\"6*9\", 42)])"
+  },
+  {
+    "id": "parametrize.html-2",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "    @pytest.mark.parametrize(\"test_input,expected\", [(\"3+5\", 8), (\"2+4\", 6), (\"6*9\", 42)])\n    def test_eval(test_input, expected):\n>       assert eval(test_input) == expected\nE       AssertionError: assert 54 == 42\nE        +  where 54 = eval('6*9')\ntest_expectation.py:6: AssertionError\n========================= short test summary info ==========================\nFAILED test_expectation.py::test_eval[6*9-42] - AssertionError: assert 54...\n======================= 1 failed, 2 passed in 0.12s ========================\nNote\nParameter values are passed as-is to tests (no copy whatsoever).\nFor example, if you pass a list or a dict as a parameter value, and\nthe test case code mutates it, the mutations will be reflected in subsequent\ntest case calls.\nNote\npytest by default escapes any non-ascii characters used in unicode strings"
+  },
+  {
+    "id": "parametrize.html-3",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "pytest by default escapes any non-ascii characters used in unicode strings\nfor the parametrization because it has several downsides.\nIf however you would like to use unicode strings in parametrization\nand see them in the terminal as is (non-escaped), use this option\nin your configuration file:\ntoml\n[pytest]\ndisable_test_id_escaping_and_forfeit_all_rights_to_community_support = true\nini\n[pytest]\ndisable_test_id_escaping_and_forfeit_all_rights_to_community_support = true\nKeep in mind however that this might cause unwanted side effects and\neven bugs depending on the OS used and plugins currently installed,\nso use it at your own risk.\nAs designed in this example, only one pair of input/output values fails\nthe simple test function.  And as usual with test function arguments,\nyou can see the input and output values in the traceback."
+  },
+  {
+    "id": "parametrize.html-4",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "you can see the input and output values in the traceback.\nNote that you could also use the parametrize marker on a class or a module\n(see How to mark test functions with attributes) which would invoke several functions with the argument sets,\nfor instance:\nimport pytest\n@pytest.mark.parametrize(\"n,expected\", [(1, 2), (3, 4)])\nclass TestClass:\n    def test_simple_case(self, n, expected):\n        assert n + 1 == expected\n    def test_weird_simple_case(self, n, expected):\n        assert (n * 1) + 1 == expected\nTo parametrize all tests in a module, you can assign to the pytestmark global variable:\nimport pytest\npytestmark = pytest.mark.parametrize(\"n,expected\", [(1, 2), (3, 4)])\nclass TestClass:\n    def test_simple_case(self, n, expected):\n        assert n + 1 == expected\n    def test_weird_simple_case(self, n, expected):"
+  },
+  {
+    "id": "parametrize.html-5",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "    def test_weird_simple_case(self, n, expected):\n        assert (n * 1) + 1 == expected\nIt is also possible to mark individual test instances within parametrize,\nfor example with the builtin mark.xfail:\n# content of test_expectation.py\nimport pytest\n@pytest.mark.parametrize(\n    \"test_input,expected\",\n    [(\"3+5\", 8), (\"2+4\", 6), pytest.param(\"6*9\", 42, marks=pytest.mark.xfail)],\n)\ndef test_eval(test_input, expected):\n    assert eval(test_input) == expected\nLet’s run this:\n$ pytest\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 3 items\ntest_expectation.py ..x                                              [100%]\n======================= 2 passed, 1 xfailed in 0.12s ======================="
+  },
+  {
+    "id": "parametrize.html-6",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "======================= 2 passed, 1 xfailed in 0.12s =======================\nThe one parameter set which caused a failure previously now\nshows up as an “xfailed” (expected to fail) test.\nIn case the values provided to parametrize result in an empty list - for\nexample, if they’re dynamically generated by some function - the behaviour of\npytest is defined by the empty_parameter_set_mark option.\nTo get all combinations of multiple parametrized arguments you can stack\nparametrize decorators:\nimport pytest\n@pytest.mark.parametrize(\"x\", [0, 1])\n@pytest.mark.parametrize(\"y\", [2, 3])\ndef test_foo(x, y):\n    pass\nThis will run the test with the arguments set to x=0/y=2, x=1/y=2,\nx=0/y=3, and x=1/y=3 exhausting parameters in the order of the decorators.\nBasic pytest_generate_tests example\nSometimes you may want to implement your own parametrization scheme"
+  },
+  {
+    "id": "parametrize.html-7",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "Sometimes you may want to implement your own parametrization scheme\nor implement some dynamism for determining the parameters or scope\nof a fixture.   For this, you can use the pytest_generate_tests hook\nwhich is called when collecting a test function.  Through the passed in\nmetafunc object you can inspect the requesting test context and, most\nimportantly, you can call metafunc.parametrize() to cause\nparametrization.\nFor example, let’s say we want to run a test taking string inputs which\nwe want to set via a new pytest command line option.  Let’s first write\na simple test accepting a stringinput fixture function argument:\n# content of test_strings.py\ndef test_valid_string(stringinput):\n    assert stringinput.isalpha()\nNow we add a conftest.py file containing the addition of a\ncommand line option and the parametrization of our test function:"
+  },
+  {
+    "id": "parametrize.html-8",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "command line option and the parametrization of our test function:\n# content of conftest.py\ndef pytest_addoption(parser):\n    parser.addoption(\n        \"--stringinput\",\n        action=\"append\",\n        default=[],\n        help=\"list of stringinputs to pass to test functions\",\n    )\ndef pytest_generate_tests(metafunc):\n    if \"stringinput\" in metafunc.fixturenames:\n        metafunc.parametrize(\"stringinput\", metafunc.config.getoption(\"stringinput\"))\nNote\nThe pytest_generate_tests hook can also be implemented directly in a test\nmodule or inside a test class; unlike other hooks, pytest will discover it there\nas well. Other hooks must live in a conftest.py or a plugin.\nSee Writing hook functions.\nIf we now pass two stringinput values, our test will run twice:\n$ pytest -q --stringinput=\"hello\" --stringinput=\"world\" test_strings.py"
+  },
+  {
+    "id": "parametrize.html-9",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "$ pytest -q --stringinput=\"hello\" --stringinput=\"world\" test_strings.py\n..                                                                   [100%]\n2 passed in 0.12s\nLet’s also run with a stringinput that will lead to a failing test:\n$ pytest -q --stringinput=\"!\" test_strings.py\nF                                                                    [100%]\n================================= FAILURES =================================\n___________________________ test_valid_string[!] ___________________________\nstringinput = '!'\n    def test_valid_string(stringinput):\n>       assert stringinput.isalpha()\nE       AssertionError: assert False\nE        +  where False = <built-in method isalpha of str object at 0xdeadbeef0001>()\nE        +    where <built-in method isalpha of str object at 0xdeadbeef0001> = '!'.isalpha"
+  },
+  {
+    "id": "parametrize.html-10",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "E        +    where <built-in method isalpha of str object at 0xdeadbeef0001> = '!'.isalpha\ntest_strings.py:4: AssertionError\n========================= short test summary info ==========================\nFAILED test_strings.py::test_valid_string[!] - AssertionError: assert False\n1 failed in 0.12s\nAs expected our test function fails.\nIf you don’t specify a stringinput it will be skipped because\nmetafunc.parametrize() will be called with an empty parameter\nlist:\n$ pytest -q -rs test_strings.py\ns                                                                    [100%]\n========================= short test summary info ==========================\nSKIPPED [1] test_strings.py: got empty parameter set for (stringinput)\n1 skipped in 0.12s\nNote that when calling metafunc.parametrize multiple times with different parameter sets, all parameter names across"
+  },
+  {
+    "id": "parametrize.html-11",
+    "source": "https://docs.pytest.org/en/stable/how-to/parametrize.html",
+    "text": "Note that when calling metafunc.parametrize multiple times with different parameter sets, all parameter names across\nthose sets cannot be duplicated, otherwise an error will be raised.\nMore examples\nFor further examples, you might want to look at more\nparametrization examples."
+  },
+  {
+    "id": "assert.html-0",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "How to write and report assertions in tests\nAsserting with the assert statement\npytest allows you to use the standard Python assert for verifying\nexpectations and values in Python tests.  For example, you can write the\nfollowing:\n# content of test_assert1.py\ndef f():\n    return 3\ndef test_function():\n    assert f() == 4\nto assert that your function returns a certain value. If this assertion fails\nyou will see the return value of the function call:\n$ pytest test_assert1.py\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 1 item\ntest_assert1.py F                                                    [100%]\n================================= FAILURES ================================="
+  },
+  {
+    "id": "assert.html-1",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "================================= FAILURES =================================\n______________________________ test_function _______________________________\n    def test_function():\n>       assert f() == 4\nE       assert 3 == 4\nE        +  where 3 = f()\ntest_assert1.py:6: AssertionError\n========================= short test summary info ==========================\nFAILED test_assert1.py::test_function - assert 3 == 4\n============================ 1 failed in 0.12s =============================\npytest has support for showing the values of the most common subexpressions\nincluding calls, attributes, comparisons, and binary and unary\noperators. (See Demo of Python failure reports with pytest).  This allows you to use the\nidiomatic python constructs without boilerplate code while not losing\nintrospection information."
+  },
+  {
+    "id": "assert.html-2",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "introspection information.\nIf a message is specified with the assertion like this:\nassert a % 2 == 0, \"value was odd, should be even\"\nit is printed alongside the assertion introspection in the traceback.\nSee Assertion introspection details for more information on assertion introspection.\nAssertions about approximate equality\nWhen comparing floating point values (or arrays of floats), small rounding\nerrors are common. Instead of using assert abs(a - b) < tol or\nnumpy.isclose, you can use pytest.approx():\nimport pytest\nimport numpy as np\ndef test_floats():\n    assert (0.1 + 0.2) == pytest.approx(0.3)\ndef test_arrays():\n    a = np.array([1.0, 2.0, 3.0])\n    b = np.array([0.9999, 2.0001, 3.0])\n    assert a == pytest.approx(b)\npytest.approx works with scalars, lists, dictionaries, and NumPy arrays."
+  },
+  {
+    "id": "assert.html-3",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "pytest.approx works with scalars, lists, dictionaries, and NumPy arrays.\nIt also supports comparisons involving NaNs.\nSee pytest.approx() for details.\nAssertions about expected exceptions\nIn order to write assertions about raised exceptions, you can use\npytest.raises() as a context manager like this:\nimport pytest\ndef test_zero_division():\n    with pytest.raises(ZeroDivisionError):\n        1 / 0\nand if you need to have access to the actual exception info you may use:\ndef test_recursion_depth():\n    with pytest.raises(RuntimeError) as excinfo:\n        def f():\n            f()\n        f()\n    assert \"maximum recursion\" in str(excinfo.value)\nexcinfo is an ExceptionInfo instance, which is a wrapper around\nthe actual exception raised.  The main attributes of interest are\n.type, .value and .traceback."
+  },
+  {
+    "id": "assert.html-4",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": ".type, .value and .traceback.\nNote that pytest.raises will match the exception type or any subclasses (like the standard except statement).\nIf you want to check if a block of code is raising an exact exception type, you need to check that explicitly:\ndef test_foo_not_implemented():\n    def foo():\n        raise NotImplementedError\n    with pytest.raises(RuntimeError) as excinfo:\n        foo()\n    assert excinfo.type is RuntimeError\nThe pytest.raises() call will succeed, even though the function raises NotImplementedError, because\nNotImplementedError is a subclass of RuntimeError; however the following assert statement will\ncatch the problem.\nMatching exception messages\nYou can pass a match keyword parameter to the context-manager to test\nthat a regular expression matches on the string representation of an exception"
+  },
+  {
+    "id": "assert.html-5",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "that a regular expression matches on the string representation of an exception\n(similar to the TestCase.assertRaisesRegex method from unittest):\nimport pytest\ndef myfunc():\n    raise ValueError(\"Exception 123 raised\")\ndef test_match():\n    with pytest.raises(ValueError, match=r\".* 123 .*\"):\n        myfunc()\nNotes:\nThe match parameter is matched with the re.search()\nfunction, so in the above example match='123' would have worked as well.\nThe match parameter also matches against PEP-678 __notes__.\nAssertions about expected exception groups\nWhen expecting a BaseExceptionGroup or ExceptionGroup you can use pytest.RaisesGroup:\ndef test_exception_in_group():\n    with pytest.RaisesGroup(ValueError):\n        raise ExceptionGroup(\"group msg\", [ValueError(\"value msg\")])\n    with pytest.RaisesGroup(ValueError, TypeError):"
+  },
+  {
+    "id": "assert.html-6",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "    with pytest.RaisesGroup(ValueError, TypeError):\n        raise ExceptionGroup(\"msg\", [ValueError(\"foo\"), TypeError(\"bar\")])\nIt accepts a match parameter, that checks against the group message, and a check parameter that takes an arbitrary callable which it passes the group to, and only succeeds if the callable returns True.\ndef test_raisesgroup_match_and_check():\n    with pytest.RaisesGroup(BaseException, match=\"my group msg\"):\n        raise BaseExceptionGroup(\"my group msg\", [KeyboardInterrupt()])\n    with pytest.RaisesGroup(\n        Exception, check=lambda eg: isinstance(eg.__cause__, ValueError)\n    ):\n        raise ExceptionGroup(\"\", [TypeError()]) from ValueError()\nIt is strict about structure and unwrapped exceptions, unlike except*, so you might want to set the flatten_subgroups and/or allow_unwrapped parameters."
+  },
+  {
+    "id": "assert.html-7",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "It is strict about structure and unwrapped exceptions, unlike except*, so you might want to set the flatten_subgroups and/or allow_unwrapped parameters.\ndef test_structure():\n    with pytest.RaisesGroup(pytest.RaisesGroup(ValueError)):\n        raise ExceptionGroup(\"\", (ExceptionGroup(\"\", (ValueError(),)),))\n    with pytest.RaisesGroup(ValueError, flatten_subgroups=True):\n        raise ExceptionGroup(\"1st group\", [ExceptionGroup(\"2nd group\", [ValueError()])])\n    with pytest.RaisesGroup(ValueError, allow_unwrapped=True):\n        raise ValueError\nTo specify more details about the contained exception you can use pytest.RaisesExc\ndef test_raises_exc():\n    with pytest.RaisesGroup(pytest.RaisesExc(ValueError, match=\"foo\")):\n        raise ExceptionGroup(\"\", (ValueError(\"foo\")))\nThey both supply a method pytest.RaisesGroup.matches() pytest.RaisesExc.matches() if you want to do matching outside of using it as a context manager. This can be helpful when checking .__context__ or .__cause__."
+  },
+  {
+    "id": "assert.html-8",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "They both supply a method pytest.RaisesGroup.matches() pytest.RaisesExc.matches() if you want to do matching outside of using it as a context manager. This can be helpful when checking .__context__ or .__cause__.\ndef test_matches():\n    exc = ValueError()\n    exc_group = ExceptionGroup(\"\", [exc])\n    if RaisesGroup(ValueError).matches(exc_group):\n        ...\n    # helpful error is available in `.fail_reason` if it fails to match\n    r = RaisesExc(ValueError)\n    assert r.matches(e), r.fail_reason\nCheck the documentation on pytest.RaisesGroup and pytest.RaisesExc for more details and examples.\nExceptionInfo.group_contains()\nWarning\nThis helper makes it easy to check for the presence of specific exceptions, but it is very bad for checking that the group does not contain any other exceptions. So this will pass:"
+  },
+  {
+    "id": "assert.html-9",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "This helper makes it easy to check for the presence of specific exceptions, but it is very bad for checking that the group does not contain any other exceptions. So this will pass:\nclass EXTREMELYBADERROR(BaseException):\n    \"\"\"This is a very bad error to miss\"\"\"\ndef test_for_value_error():\n    with pytest.raises(ExceptionGroup) as excinfo:\n        excs = [ValueError()]\n        if very_unlucky():\n            excs.append(EXTREMELYBADERROR())\n        raise ExceptionGroup(\"\", excs)\n    # This passes regardless of if there's other exceptions.\n    assert excinfo.group_contains(ValueError)\n    # You can't simply list all exceptions you *don't* want to get here.\nThere is no good way of using excinfo.group_contains() to ensure you’re not getting any other exceptions than the one you expected.\nYou should instead use pytest.RaisesGroup, see Assertions about expected exception groups."
+  },
+  {
+    "id": "assert.html-10",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "You should instead use pytest.RaisesGroup, see Assertions about expected exception groups.\nYou can also use the excinfo.group_contains()\nmethod to test for exceptions returned as part of an ExceptionGroup:\ndef test_exception_in_group():\n    with pytest.raises(ExceptionGroup) as excinfo:\n        raise ExceptionGroup(\n            \"Group message\",\n            [\n                RuntimeError(\"Exception 123 raised\"),\n            ],\n        )\n    assert excinfo.group_contains(RuntimeError, match=r\".* 123 .*\")\n    assert not excinfo.group_contains(TypeError)\nThe optional match keyword parameter works the same way as for\npytest.raises().\nBy default group_contains() will recursively search for a matching\nexception at any level of nested ExceptionGroup instances. You can\nspecify a depth keyword parameter if you only want to match an"
+  },
+  {
+    "id": "assert.html-11",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "specify a depth keyword parameter if you only want to match an\nexception at a specific level; exceptions contained directly in the top\nExceptionGroup would match depth=1.\ndef test_exception_in_group_at_given_depth():\n    with pytest.raises(ExceptionGroup) as excinfo:\n        raise ExceptionGroup(\n            \"Group message\",\n            [\n                RuntimeError(),\n                ExceptionGroup(\n                    \"Nested group\",\n                    [\n                        TypeError(),\n                    ],\n                ),\n            ],\n        )\n    assert excinfo.group_contains(RuntimeError, depth=1)\n    assert excinfo.group_contains(TypeError, depth=2)\n    assert not excinfo.group_contains(RuntimeError, depth=2)\n    assert not excinfo.group_contains(TypeError, depth=1)\nAlternate pytest.raises form (legacy)"
+  },
+  {
+    "id": "assert.html-12",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "Alternate pytest.raises form (legacy)\nThere is an alternate form of pytest.raises() where you pass\na function that will be executed, along with *args and **kwargs. pytest.raises()\nwill then execute the function with those arguments and assert that the given exception is raised:\ndef func(x):\n    if x <= 0:\n        raise ValueError(\"x needs to be larger than zero\")\npytest.raises(ValueError, func, x=-1)\nThis form was the original pytest.raises() API, developed before the with statement was\nadded to the Python language. Nowadays, this form is rarely used, with the context-manager form (using with)\nbeing considered more readable.\nxfail mark and pytest.raises\nIt is also possible to specify a raises argument to\npytest.mark.xfail, which checks that the test is failing in a more\nspecific way than just having any exception raised:"
+  },
+  {
+    "id": "assert.html-13",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "specific way than just having any exception raised:\ndef f():\n    raise IndexError()\n@pytest.mark.xfail(raises=IndexError)\ndef test_f():\n    f()\nThis will only “xfail” if the test fails by raising IndexError or subclasses.\nUsing pytest.mark.xfail with the raises parameter is probably better for something\nlike documenting unfixed bugs (where the test describes what “should” happen) or bugs in dependencies.\nUsing pytest.raises() is likely to be better for cases where you are\ntesting exceptions your own code is deliberately raising, which is the majority of cases.\nYou can also use pytest.RaisesGroup:\ndef f():\n    raise ExceptionGroup(\"\", [IndexError()])\n@pytest.mark.xfail(raises=RaisesGroup(IndexError))\ndef test_f():\n    f()\nAssertions about expected warnings\nYou can check that code raises a particular warning using"
+  },
+  {
+    "id": "assert.html-14",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "You can check that code raises a particular warning using\npytest.warns.\nMaking use of context-sensitive comparisons\npytest has rich support for providing context-sensitive information\nwhen it encounters comparisons.  For example:\n# content of test_assert2.py\ndef test_set_comparison():\n    set1 = set(\"1308\")\n    set2 = set(\"8035\")\n    assert set1 == set2\nif you run this module:\n$ pytest test_assert2.py\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y\nrootdir: /home/sweet/project\ncollected 1 item\ntest_assert2.py F                                                    [100%]\n================================= FAILURES =================================\n___________________________ test_set_comparison ____________________________"
+  },
+  {
+    "id": "assert.html-15",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "___________________________ test_set_comparison ____________________________\n    def test_set_comparison():\n        set1 = set(\"1308\")\n        set2 = set(\"8035\")\n>       assert set1 == set2\nE       AssertionError: assert {'0', '1', '3', '8'} == {'0', '3', '5', '8'}\nE\nE         Extra items in the left set:\nE         '1'\nE         Extra items in the right set:\nE         '5'\nE         Use -v to get more diff\ntest_assert2.py:4: AssertionError\n========================= short test summary info ==========================\nFAILED test_assert2.py::test_set_comparison - AssertionError: assert {'0'...\n============================ 1 failed in 0.12s =============================\nSpecial comparisons are done for a number of cases:\ncomparing long strings: a context diff is shown\ncomparing long sequences: first failing indices"
+  },
+  {
+    "id": "assert.html-16",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "comparing long sequences: first failing indices\ncomparing dicts: different entries\nSee the reporting demo for many more examples.\nDefining your own explanation for failed assertions\nIt is possible to add your own detailed explanations by implementing\nthe pytest_assertrepr_compare hook.\npytest_assertrepr_compare(config, op, left, right)[source]\nReturn explanation for comparisons in failing assert expressions.\nReturn None for no custom explanation, otherwise return a list\nof strings. The strings will be joined by newlines but any newlines\nin a string will be escaped. Note that all but the first line will\nbe indented slightly, the intention is for the first line to be a summary.\nNote\nThis hook is also called for passing assertions if the\npytest_assertion_pass() hook is implemented.\nParameters:"
+  },
+  {
+    "id": "assert.html-17",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "Parameters:\nconfig – The pytest config object.\nop – The operator, e.g. \"==\", \"!=\", \"not in\".\nleft – The left operand.\nright – The right operand.\nUse in conftest plugins\nAny conftest file can implement this hook. For a given item, only conftest\nfiles in the item’s directory and its parent directories are consulted.\nAs an example consider adding the following hook in a conftest.py\nfile which provides an alternative explanation for Foo objects:\n# content of conftest.py\nfrom test_foocompare import Foo\ndef pytest_assertrepr_compare(op, left, right):\n    if isinstance(left, Foo) and isinstance(right, Foo) and op == \"==\":\n        return [\n            \"Comparing Foo instances:\",\n            f\"   vals: {left.val} != {right.val}\",\n        ]\nnow, given this test module:\n# content of test_foocompare.py"
+  },
+  {
+    "id": "assert.html-18",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "# content of test_foocompare.py\nclass Foo:\n    def __init__(self, val):\n        self.val = val\n    def __eq__(self, other):\n        return self.val == other.val\ndef test_compare():\n    f1 = Foo(1)\n    f2 = Foo(2)\n    assert f1 == f2\nyou can run the test module and get the custom output defined in\nthe conftest file:\n$ pytest -q test_foocompare.py\nF                                                                    [100%]\n================================= FAILURES =================================\n_______________________________ test_compare _______________________________\n    def test_compare():\n        f1 = Foo(1)\n        f2 = Foo(2)\n>       assert f1 == f2\nE       assert Comparing Foo instances:\nE            vals: 1 != 2\ntest_foocompare.py:12: AssertionError\n========================= short test summary info =========================="
+  },
+  {
+    "id": "assert.html-19",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "========================= short test summary info ==========================\nFAILED test_foocompare.py::test_compare - assert Comparing Foo instances:\n1 failed in 0.12s\nReturning non-None value in test functions\nA pytest.PytestReturnNotNoneWarning is emitted when a test function returns a value other than None.\nThis helps prevent a common mistake made by beginners who assume that returning a bool (e.g., True or False) will determine whether a test passes or fails.\nExample:\n@pytest.mark.parametrize(\n    [\"a\", \"b\", \"result\"],\n    [\n        [1, 2, 5],\n        [2, 3, 8],\n        [5, 3, 18],\n    ],\n)\ndef test_foo(a, b, result):\n    return foo(a, b) == result  # Incorrect usage, do not do this.\nSince pytest ignores return values, it might be surprising that the test will never fail based on the returned value."
+  },
+  {
+    "id": "assert.html-20",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "Since pytest ignores return values, it might be surprising that the test will never fail based on the returned value.\nThe correct fix is to replace the return statement with an assert:\n@pytest.mark.parametrize(\n    [\"a\", \"b\", \"result\"],\n    [\n        [1, 2, 5],\n        [2, 3, 8],\n        [5, 3, 18],\n    ],\n)\ndef test_foo(a, b, result):\n    assert foo(a, b) == result\nAssertion introspection details\nReporting details about a failing assertion is achieved by rewriting assert\nstatements before they are run.  Rewritten assert statements put introspection\ninformation into the assertion failure message.  pytest only rewrites test\nmodules directly discovered by its test collection process, so asserts in\nsupporting modules which are not themselves test modules will not be rewritten.\nYou can manually enable assertion rewriting for an imported module by calling"
+  },
+  {
+    "id": "assert.html-21",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "You can manually enable assertion rewriting for an imported module by calling\nregister_assert_rewrite\nbefore you import it (a good place to do that is in your root conftest.py).\nFor further information, Benjamin Peterson wrote up Behind the scenes of pytest’s new assertion rewriting.\nAssertion rewriting caches files on disk\npytest will write back the rewritten modules to disk for caching. You can disable\nthis behavior (for example to avoid leaving stale .pyc files around in projects that\nmove files around a lot) by adding this to the top of your conftest.py file:\nimport sys\nsys.dont_write_bytecode = True\nNote that you still get the benefits of assertion introspection, the only change is that\nthe .pyc files won’t be cached on disk.\nAdditionally, rewriting will silently skip caching if it cannot write new .pyc files,"
+  },
+  {
+    "id": "assert.html-22",
+    "source": "https://docs.pytest.org/en/stable/how-to/assert.html",
+    "text": "Additionally, rewriting will silently skip caching if it cannot write new .pyc files,\ne.g. in a read-only filesystem or a zipfile.\nDisabling assert rewriting\npytest rewrites test modules on import by using an import\nhook to write new pyc files. Most of the time this works transparently.\nHowever, if you are working with the import machinery yourself, the import hook may\ninterfere.\nIf this is the case you have two options:\nDisable rewriting for a specific module by adding the string\nPYTEST_DONT_REWRITE to its docstring.\nDisable rewriting for all modules by using --assert=plain."
+  },
+  {
+    "id": "mark.html-0",
+    "source": "https://docs.pytest.org/en/stable/how-to/mark.html",
+    "text": "How to mark test functions with attributes\nBy using the pytest.mark helper you can easily set\nmetadata on your test functions. You can find the full list of builtin markers\nin the API Reference. Or you can list all the markers, including\nbuiltin and custom, using the CLI - pytest --markers.\nHere are some of the builtin markers:\nusefixtures - use fixtures on a test function or class\nfilterwarnings - filter certain warnings of a test function\nskip - always skip a test function\nskipif - skip a test function if a certain condition is met\nxfail - produce an “expected failure” outcome if a certain\ncondition is met\nparametrize - perform multiple calls\nto the same test function.\nIt’s easy to create custom markers or to apply markers\nto whole test classes or modules. Those markers can be used by plugins, and also"
+  },
+  {
+    "id": "mark.html-1",
+    "source": "https://docs.pytest.org/en/stable/how-to/mark.html",
+    "text": "to whole test classes or modules. Those markers can be used by plugins, and also\nare commonly used to select tests on the command-line with the -m option.\nSee Working with custom markers for examples which also serve as documentation.\nNote\nMarks can only be applied to tests, having no effect on\nfixtures.\nRegistering marks\nYou can register custom marks in your configuration file like this:\ntoml\n[pytest]\nmarkers = [\n    \"slow: marks tests as slow (deselect with '-m \\\"not slow\\\"')\",\n    \"serial\",\n]\nini\n[pytest]\nmarkers =\n    slow: marks tests as slow (deselect with '-m \"not slow\"')\n    serial\nNote that everything past the : after the mark name is an optional description.\nAlternatively, you can register new markers programmatically in a\npytest_configure hook:\ndef pytest_configure(config):\n    config.addinivalue_line("
+  },
+  {
+    "id": "mark.html-2",
+    "source": "https://docs.pytest.org/en/stable/how-to/mark.html",
+    "text": "    config.addinivalue_line(\n        \"markers\", \"env(name): mark test to run only on named environment\"\n    )\nRegistered marks appear in pytest’s help text and do not emit warnings (see the next section). It\nis recommended that third-party plugins always register their markers.\nRaising errors on unknown marks\nUnregistered marks applied with the @pytest.mark.name_of_the_mark decorator\nwill always emit a warning in order to avoid silently doing something\nsurprising due to mistyped names. As described in the previous section, you can disable\nthe warning for custom marks by registering them in your configuration file or\nusing a custom pytest_configure hook.\nWhen the strict_markers configuration option is set, any unknown marks applied\nwith the @pytest.mark.name_of_the_mark decorator will trigger an error. You can"
+  },
+  {
+    "id": "mark.html-3",
+    "source": "https://docs.pytest.org/en/stable/how-to/mark.html",
+    "text": "with the @pytest.mark.name_of_the_mark decorator will trigger an error. You can\nenforce this validation in your project by setting strict_markers in your configuration:\ntoml\n[pytest]\naddopts = [\"--strict-markers\"]\nmarkers = [\n    \"slow: marks tests as slow (deselect with '-m \\\"not slow\\\"')\",\n    \"serial\",\n]\nini\n[pytest]\nstrict_markers = true\nmarkers =\n    slow: marks tests as slow (deselect with '-m \"not slow\"')\n    serial"
+  },
+  {
+    "id": "skipping.html-0",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "How to use skip and xfail to deal with tests that cannot succeed\nYou can mark test functions that cannot be run on certain platforms\nor that you expect to fail so pytest can deal with them accordingly and\npresent a summary of the test session, while keeping the test suite green.\nA skip means that you expect your test to pass only if some conditions are met,\notherwise pytest should skip running the test altogether. Common examples are skipping\nwindows-only tests on non-windows platforms, or skipping tests that depend on an external\nresource which is not available at the moment (for example a database).\nAn xfail means that you expect a test to fail for some reason.\nA common example is a test for a feature not yet implemented, or a bug not yet fixed.\nWhen a test passes despite being expected to fail (marked with pytest.mark.xfail),"
+  },
+  {
+    "id": "skipping.html-1",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "When a test passes despite being expected to fail (marked with pytest.mark.xfail),\nit’s an xpass and will be reported in the test summary.\npytest counts and lists skip and xfail tests separately. Detailed\ninformation about skipped/xfailed tests is not shown by default to avoid\ncluttering the output.  You can use the -r option to see details\ncorresponding to the “short” letters shown in the test progress:\npytest -rxXs  # show extra info on xfailed, xpassed, and skipped tests\nMore details on the -r option can be found by running pytest -h.\n(See Builtin configuration file options)\nSkipping test functions\nThe simplest way to skip a test function is to mark it with the skip decorator\nwhich may be passed an optional reason:\n@pytest.mark.skip(reason=\"no way of currently testing this\")\ndef test_the_unknown(): ..."
+  },
+  {
+    "id": "skipping.html-2",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "def test_the_unknown(): ...\nAlternatively, it is also possible to skip imperatively during test execution or setup\nby calling the pytest.skip(reason) function:\ndef test_function():\n    if not valid_config():\n        pytest.skip(\"unsupported configuration\")\nThe imperative method is useful when it is not possible to evaluate the skip condition\nduring import time.\nIt is also possible to skip the whole module using\npytest.skip(reason, allow_module_level=True) at the module level:\nimport sys\nimport pytest\nif not sys.platform.startswith(\"win\"):\n    pytest.skip(\"skipping windows-only tests\", allow_module_level=True)\nReference: pytest.mark.skip\nskipif\nIf you wish to skip something conditionally then you can use skipif instead.\nHere is an example of marking a test function to be skipped\nwhen run on an interpreter earlier than Python3.13:"
+  },
+  {
+    "id": "skipping.html-3",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "when run on an interpreter earlier than Python3.13:\nimport sys\n@pytest.mark.skipif(sys.version_info < (3, 13), reason=\"requires python3.13 or higher\")\ndef test_function(): ...\nIf the condition evaluates to True during collection, the test function will be skipped,\nwith the specified reason appearing in the summary when using -rs.\nYou can share skipif markers between modules.  Consider this test module:\n# content of test_mymodule.py\nimport mymodule\nminversion = pytest.mark.skipif(\n    mymodule.__versioninfo__ < (1, 1), reason=\"at least mymodule-1.1 required\"\n)\n@minversion\ndef test_function(): ...\nYou can import the marker and reuse it in another test module:\n# test_myothermodule.py\nfrom test_mymodule import minversion\n@minversion\ndef test_anotherfunction(): ...\nFor larger test suites it’s usually a good idea to have one file"
+  },
+  {
+    "id": "skipping.html-4",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "For larger test suites it’s usually a good idea to have one file\nwhere you define the markers which you then consistently apply\nthroughout your test suite.\nAlternatively, you can use condition strings instead of booleans, but they can’t be shared between modules easily\nso they are supported mainly for backward compatibility reasons.\nReference: pytest.mark.skipif\nSkip all test functions of a class or module\nYou can use the skipif marker (as any other marker) on classes:\n@pytest.mark.skipif(sys.platform == \"win32\", reason=\"does not run on windows\")\nclass TestPosixCalls:\n    def test_function(self):\n        \"will not be setup or run under 'win32' platform\"\nIf the condition is True, this marker will produce a skip result for\neach of the test methods of that class.\nIf you want to skip all test functions of a module, you may use the"
+  },
+  {
+    "id": "skipping.html-5",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "If you want to skip all test functions of a module, you may use the\npytestmark global:\n# test_module.py\npytestmark = pytest.mark.skipif(...)\nIf multiple skipif decorators are applied to a test function, it\nwill be skipped if any of the skip conditions is true.\nSkipping files or directories\nSometimes you may need to skip an entire file or directory, for example if the\ntests rely on Python version-specific features or contain code that you do not\nwish pytest to run. In this case, you must exclude the files and directories\nfrom collection. Refer to Customizing test collection for more\ninformation.\nSkipping on a missing import dependency\nYou can skip tests on a missing import by using pytest.importorskip\nat module level, within a test, or test setup function.\ndocutils = pytest.importorskip(\"docutils\")"
+  },
+  {
+    "id": "skipping.html-6",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "docutils = pytest.importorskip(\"docutils\")\nIf docutils cannot be imported here, this will lead to a skip outcome of\nthe test. You can also skip based on the version number of a library:\ndocutils = pytest.importorskip(\"docutils\", minversion=\"0.3\")\nThe version will be read from the specified\nmodule’s __version__ attribute.\nSummary\nHere’s a quick guide on how to skip tests in a module in different situations:\nSkip all tests in a module unconditionally:\npytestmark = pytest.mark.skip(\"all tests still WIP\")\nSkip all tests in a module based on some condition:\npytestmark = pytest.mark.skipif(sys.platform == \"win32\", reason=\"tests for linux only\")\nSkip all tests in a module if some import is missing:\npexpect = pytest.importorskip(\"pexpect\")\nXFail: mark test functions as expected to fail\nYou can use the xfail marker to indicate that you"
+  },
+  {
+    "id": "skipping.html-7",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "You can use the xfail marker to indicate that you\nexpect a test to fail:\n@pytest.mark.xfail\ndef test_function(): ...\nThis test will run but no traceback will be reported when it fails. Instead, terminal\nreporting will list it in the “expected to fail” (XFAIL) or “unexpectedly\npassing” (XPASS) sections.\nAlternatively, you can also mark a test as XFAIL from within the test or its setup function\nimperatively:\ndef test_function():\n    if not valid_config():\n        pytest.xfail(\"failing configuration (but should work)\")\ndef test_function2():\n    import slow_module\n    if slow_module.slow_function():\n        pytest.xfail(\"slow_module taking too long\")\nThese two examples illustrate situations where you don’t want to check for a condition\nat the module level, which is when a condition would otherwise be evaluated for marks."
+  },
+  {
+    "id": "skipping.html-8",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "at the module level, which is when a condition would otherwise be evaluated for marks.\nThis will make test_function XFAIL. Note that no other code is executed after\nthe pytest.xfail() call, differently from the marker. That’s because it is implemented\ninternally by raising a known exception.\nReference: pytest.mark.xfail\ncondition parameter\nIf a test is only expected to fail under a certain condition, you can pass\nthat condition as the first parameter:\n@pytest.mark.xfail(sys.platform == \"win32\", reason=\"bug in a 3rd party library\")\ndef test_function(): ...\nNote that you have to pass a reason as well (see the parameter description at\npytest.mark.xfail).\nreason parameter\nYou can specify the motive of an expected failure with the reason parameter:\n@pytest.mark.xfail(reason=\"known parser issue\")"
+  },
+  {
+    "id": "skipping.html-9",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "@pytest.mark.xfail(reason=\"known parser issue\")\ndef test_function(): ...\nraises parameter\nIf you want to be more specific as to why the test is failing, you can specify\na single exception, or a tuple of exceptions, in the raises argument.\n@pytest.mark.xfail(raises=RuntimeError)\ndef test_function(): ...\nThen the test will be reported as a regular failure if it fails with an\nexception not mentioned in raises.\nrun parameter\nIf a test should be marked as xfail and reported as such but should not even\nbe executed, use the run parameter as False:\n@pytest.mark.xfail(run=False)\ndef test_function(): ...\nThis is particularly useful for xfailing tests that are crashing the interpreter and should be\ninvestigated later.\nstrict parameter\nBoth XFAIL and XPASS don’t fail the test suite by default.\nYou can change this by setting the strict keyword-only parameter to True:"
+  },
+  {
+    "id": "skipping.html-10",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "You can change this by setting the strict keyword-only parameter to True:\n@pytest.mark.xfail(strict=True)\ndef test_function(): ...\nThis will make XPASS (“unexpectedly passing”) results from this test to fail the test suite.\nYou can change the default value of the strict parameter using the\nstrict_xfail ini option:\ntoml\n[pytest]\nxfail_strict = true\nini\n[pytest]\nstrict_xfail = true\nIgnoring xfail\nBy specifying on the commandline:\npytest --runxfail\nyou can force the running and reporting of an xfail marked test\nas if it weren’t marked at all. This also causes pytest.xfail() to produce no effect.\nExamples\nHere is a simple test file with the several usages:\nfrom __future__ import annotations\nimport pytest\nxfail = pytest.mark.xfail\n@xfail\ndef test_hello():\n    assert 0\n@xfail(run=False)\ndef test_hello2():"
+  },
+  {
+    "id": "skipping.html-11",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "def test_hello2():\n    assert 0\n@xfail(\"hasattr(os, 'sep')\")\ndef test_hello3():\n    assert 0\n@xfail(reason=\"bug 110\")\ndef test_hello4():\n    assert 0\n@xfail('pytest.__version__[0] != \"17\"')\ndef test_hello5():\n    assert 0\ndef test_hello6():\n    pytest.xfail(\"reason\")\n@xfail(raises=IndexError)\ndef test_hello7():\n    x = []\n    x[1] = 1\nRunning it with the report-on-xfail option gives this output:\n! pytest -rx xfail_demo.py\n=========================== test session starts ============================\nplatform linux -- Python 3.x.y, pytest-6.x.y, py-1.x.y, pluggy-1.x.y\ncachedir: $PYTHON_PREFIX/.pytest_cache\nrootdir: $REGENDOC_TMPDIR/example\ncollected 7 items\nxfail_demo.py xxxxxxx                                                [100%]\n========================= short test summary info =========================="
+  },
+  {
+    "id": "skipping.html-12",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "========================= short test summary info ==========================\nXFAIL xfail_demo.py::test_hello\nXFAIL xfail_demo.py::test_hello2\n  reason: [NOTRUN]\nXFAIL xfail_demo.py::test_hello3\n  condition: hasattr(os, 'sep')\nXFAIL xfail_demo.py::test_hello4\n  bug 110\nXFAIL xfail_demo.py::test_hello5\n  condition: pytest.__version__[0] != \"17\"\nXFAIL xfail_demo.py::test_hello6\n  reason: reason\nXFAIL xfail_demo.py::test_hello7\n============================ 7 xfailed in 0.12s ============================\nSkip/xfail with parametrize\nIt is possible to apply markers like skip and xfail to individual\ntest instances when using parametrize:\nimport sys\nimport pytest\n@pytest.mark.parametrize(\n    (\"n\", \"expected\"),\n    [\n        (1, 2),\n        pytest.param(1, 0, marks=pytest.mark.xfail),\n        pytest.param(1, 3, marks=pytest.mark.xfail(reason=\"some bug\")),"
+  },
+  {
+    "id": "skipping.html-13",
+    "source": "https://docs.pytest.org/en/stable/how-to/skipping.html",
+    "text": "        pytest.param(1, 3, marks=pytest.mark.xfail(reason=\"some bug\")),\n        (2, 3),\n        (3, 4),\n        (4, 5),\n        pytest.param(\n            10, 11, marks=pytest.mark.skipif(sys.version_info >= (3, 0), reason=\"py2k\")\n        ),\n    ],\n)\ndef test_increment(n, expected):\n    assert n + 1 == expected"
+  }
+]

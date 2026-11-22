@@ -1,0 +1,142 @@
+[
+  {
+    "id": "skip-basic",
+    "question": "How do I skip a test?",
+    "expected_page": "skipping.html",
+    "must_include": ["pytest.mark.skip"],
+    "must_not_include": []
+  },
+  {
+    "id": "parametrize-basic",
+    "question": "How do I run the same test with different inputs?",
+    "expected_page": "parametrize.html",
+    "must_include": ["pytest.mark.parametrize"],
+    "must_not_include": []
+  },
+  {
+    "id": "raises-basic",
+    "question": "How do I check that a function raises an exception?",
+    "expected_page": "assert.html",
+    "must_include": ["pytest.raises"],
+    "must_not_include": []
+  },
+  {
+    "id": "fixture-share-across-files",
+    "question": "How do I share a fixture across multiple test files?",
+    "expected_page": "fixtures.html",
+    "must_include": ["conftest.py"],
+    "must_not_include": []
+  },
+  {
+    "id": "offtopic-django-deploy",
+    "question": "How do I deploy a Django app?",
+    "expected_page": null,
+    "must_include": [],
+    "must_not_include": []
+  },
+  {
+    "id": "skipif-windows",
+    "question": "How do I skip a test only when running on Windows?",
+    "expected_page": "skipping.html",
+    "must_include": ["skipif", "sys.platform"],
+    "must_not_include": []
+  },
+  {
+    "id": "fixture-teardown",
+    "question": "How can I run cleanup code after a test that uses a fixture?",
+    "expected_page": "fixtures.html",
+    "must_include": ["yield"],
+    "must_not_include": []
+  },
+  {
+    "id": "xfail-known-bug",
+    "question": "I have a test that fails because of a known bug. How do I mark it so it doesn't break the test run?",
+    "expected_page": "skipping.html",
+    "must_include": ["xfail"],
+    "must_not_include": []
+  },
+  {
+    "id": "fixture-scope-module",
+    "question": "How do I make an expensive fixture run only once for all tests in a file?",
+    "expected_page": "fixtures.html",
+    "must_include": ["scope", "module"],
+    "must_not_include": []
+  },
+  {
+    "id": "raises-match-message",
+    "question": "How do I check that an exception has a specific error message?",
+    "expected_page": "assert.html",
+    "must_include": ["pytest.raises", "match"],
+    "must_not_include": []
+  },
+  {
+    "id": "marker-run-selected",
+    "question": "How do I run only the tests that I marked as slow?",
+    "expected_page": "mark.html",
+    "must_include": ["-m"],
+    "must_not_include": []
+  },
+  {
+    "id": "marker-register",
+    "question": "How do I register my own custom markers so pytest doesn't warn about them?",
+    "expected_page": "mark.html",
+    "must_include": ["markers"],
+    "must_not_include": []
+  },
+  {
+    "id": "marker-strict",
+    "question": "How can I make pytest fail when I use a marker that isn't registered?",
+    "expected_page": "mark.html",
+    "must_include": ["strict"],
+    "must_not_include": []
+  },
+  {
+    "id": "install-pytest",
+    "question": "How do I install pytest?",
+    "expected_page": "getting-started.html",
+    "must_include": ["pip install"],
+    "must_not_include": []
+  },
+  {
+    "id": "test-discovery",
+    "question": "How does pytest know which files contain tests?",
+    "expected_page": "getting-started.html",
+    "must_include": ["test_*.py"],
+    "must_not_include": []
+  },
+  {
+    "id": "importorskip-optional-lib",
+    "question": "How do I skip tests if an optional library is not installed?",
+    "expected_page": "skipping.html",
+    "must_include": ["importorskip"],
+    "must_not_include": []
+  },
+  {
+    "id": "parametrize-xfail-one-case",
+    "question": "With parametrize, how do I mark just one of the input combinations as expected to fail?",
+    "expected_page": "parametrize.html",
+    "must_include": ["pytest.param", "xfail"],
+    "must_not_include": []
+  },
+  {
+    "id": "fixture-autouse",
+    "question": "How do I make a fixture run automatically for every test without requesting it?",
+    "expected_page": "fixtures.html",
+    "must_include": ["autouse"],
+    "must_not_include": []
+  },
+  {
+    "id": "not-covered-monkeypatch",
+    "question": "How do I use monkeypatch to change an environment variable in a test?",
+    "expected_page": null,
+    "must_include": [],
+    "must_not_include": []
+  },
+  {
+    "id": "offtopic-css-center",
+    "question": "What's the best way to center a div in CSS?",
+    "expected_page": null,
+    "must_include": [],
+    "must_not_include": []
+  }
+]

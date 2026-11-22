@@ -1,0 +1,17 @@
+# Virtual environment (each person creates their own)
+.venv/
+
+# Secrets - API keys live here, never commit
+.env
+
+# Chroma vector database (rebuilt from the docs, no need to save)
+chroma_db/
+
+# Python cache files
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Personal working notes (kept local)
+claude.md
+CLAUDE.md

@@ -1,0 +1,8 @@
+# Packages this project needs. We add to this list step by step.
+requests
+beautifulsoup4
+chromadb
+sentence-transformers
+openai
+python-dotenv
+pytest
